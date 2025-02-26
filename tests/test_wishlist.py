@@ -15,16 +15,16 @@
 ######################################################################
 
 """
-TestWishlist API Service Test Suite
+Test cases for Wishlist Model
 """
 
 # pylint: disable=duplicate-code
 import os
 import logging
 from unittest import TestCase
+from tests.factories import WishlistFactory
 from wsgi import app
-from service.common import status
-from service.models import db, Wishlist
+from service.models import Wishlist, Product, db
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -32,31 +32,30 @@ DATABASE_URI = os.getenv(
 
 
 ######################################################################
-#  T E S T   C A S E S
+#  WISHLIST   M O D E L   T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
-class TestWishlistService(TestCase):
-    """REST API Server Tests"""
+class TestWishlist(TestCase):
+    """Test Cases for Wishlist Model"""
 
     @classmethod
     def setUpClass(cls):
-        """Run once before all tests"""
+        """This runs once before the entire test suite"""
         app.config["TESTING"] = True
         app.config["DEBUG"] = False
-        # Set up the test database
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         app.app_context().push()
 
     @classmethod
     def tearDownClass(cls):
-        """Run once after all tests"""
+        """This runs once after the entire test suite"""
         db.session.close()
 
     def setUp(self):
-        """Runs before each test"""
-        self.client = app.test_client()
+        """This runs before each test"""
         db.session.query(Wishlist).delete()  # clean up the last tests
+        db.session.query(Product).delete()
         db.session.commit()
 
     def tearDown(self):
@@ -64,12 +63,32 @@ class TestWishlistService(TestCase):
         db.session.remove()
 
     ######################################################################
-    #  P L A C E   T E S T   C A S E S   H E R E
+    #  T E S T   C A S E S
     ######################################################################
 
-    def test_index(self):
-        """It should call the home page"""
-        resp = self.client.get("/")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+    def test_create_a_wishlist(self):
+        """It should Create a Wishlist"""
+        # fake_wishlist = WishlistFactory()
+        # # pylint: disable=unexpected-keyword-arg
+        # wishlist = Wishlist(
+        #     name=fake_wishlist.name,
+        #     userid=fake_wishlist.userid,
+        #     email=fake_wishlist.email,
+        #     phone_number=fake_wishlist.phone_number,
+        #     date_joined=fake_wishlist.date_joined,
+        # )
+        # self.assertIsNotNone(wishlist)
+        # self.assertEqual(wishlist.id, None)
+        # self.assertEqual(wishlist.name, fake_wishlist.name)
+        # self.assertEqual(wishlist.userid, fake_wishlist.userid)
+
+        wishlist = WishlistFactory()
+        wishlist.create()
+        self.assertIsNotNone(wishlist.id)
+        found = Wishlist.all()
+        self.assertEqual(len(found), 1)
+        data = Wishlist.find(wishlist.id)
+        self.assertEqual(data.name, wishlist.name)
+        self.assertEqual(data.userid, wishlist.userid)
 
     # Todo: Add your test cases here...

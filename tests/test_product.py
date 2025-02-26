@@ -13,18 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ######################################################################
-
-"""
-Test cases for Pet Model
-"""
-
 # pylint: disable=duplicate-code
+
+"""
+Test cases for Product Model
+"""
+
 import os
 import logging
 from unittest import TestCase
+from tests.factories import ProductFactory
 from wsgi import app
-from service.models import YourResourceModel, DataValidationError, db
-from .factories import YourResourceModelFactory
+from service.models import Wishlist, Product, db
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -32,11 +32,10 @@ DATABASE_URI = os.getenv(
 
 
 ######################################################################
-#  YourResourceModel   M O D E L   T E S T   C A S E S
+#        A D D R E S S   M O D E L   T E S T   C A S E S
 ######################################################################
-# pylint: disable=too-many-public-methods
-class TestYourResourceModel(TestCase):
-    """Test Cases for YourResourceModel Model"""
+class TestProduct(TestCase):
+    """Product Model Test Cases"""
 
     @classmethod
     def setUpClass(cls):
@@ -54,7 +53,8 @@ class TestYourResourceModel(TestCase):
 
     def setUp(self):
         """This runs before each test"""
-        db.session.query(YourResourceModel).delete()  # clean up the last tests
+        db.session.query(Wishlist).delete()  # clean up the last tests
+        db.session.query(Product).delete()  # clean up the last tests
         db.session.commit()
 
     def tearDown(self):
@@ -65,15 +65,18 @@ class TestYourResourceModel(TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
-    def test_example_replace_this(self):
-        """It should create a YourResourceModel"""
-        # Todo: Remove this test case example
-        resource = YourResourceModelFactory()
-        resource.create()
-        self.assertIsNotNone(resource.id)
-        found = YourResourceModel.all()
+    def test_create_a_product(self):
+        """It should create a Product"""
+
+        product = ProductFactory()
+        product.create()
+        self.assertIsNotNone(product.id)
+        found = Product.all()
         self.assertEqual(len(found), 1)
-        data = YourResourceModel.find(resource.id)
-        self.assertEqual(data.name, resource.name)
+        data = Product.find(product.id)
+        self.assertEqual(data.wishlist_id, product.wishlist_id)
+        self.assertEqual(data.name, product.name)
+        self.assertEqual(data.price, product.price)
+        self.assertEqual(data.description, product.description)
 
     # Todo: Add your test cases here...
