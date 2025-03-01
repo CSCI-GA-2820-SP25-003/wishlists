@@ -25,6 +25,9 @@ from unittest import TestCase
 from wsgi import app
 from service.common import status
 from service.models import db, Wishlist
+from .factories import WishlistFactory
+
+BASE_URL = "/wishlists"
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -73,3 +76,34 @@ class TestWishlistService(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     # Todo: Add your test cases here...
+
+    def test_create_wishlist(self):
+        """It should Create a new Wishlist"""
+        wishlist = WishlistFactory()
+        resp = self.client.post(
+            BASE_URL, json=wishlist.serialize(), content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # Make sure location header is set
+        location = resp.headers.get("Location", None)
+        self.assertIsNotNone(location)
+
+        # Check the data is correct
+        new_wishlist = resp.get_json()
+        self.assertEqual(new_wishlist["name"], wishlist.name, "Names does not match")
+        self.assertEqual(new_wishlist["userid"], wishlist.userid, "Email does not match")
+        self.assertEqual(
+            new_wishlist["products"], wishlist.products, "Product does not match"
+        )
+
+        # Todo: Uncomment this code when get_wishlists is implemented
+        # Check that the location header was correct by getting it
+        # resp = self.client.get(location, content_type="application/json")
+        # self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        # new_wishlist = resp.get_json()
+        # self.assertEqual(new_wishlist["name"], wishlist.name, "Names does not match")
+        # self.assertEqual(new_wishlist["userid"], wishlist.userid, "Email does not match")
+        # self.assertEqual(
+        #     new_wishlist["products"], wishlist.products, "Product does not match"
+        # )
