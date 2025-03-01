@@ -63,7 +63,7 @@ def create_wishlists():
     # Create a message to return
     message = wishlist.serialize()
     # Todo: Uncomment this code when get_wishlists is implemented
-    #location_url = url_for("get_wishlists", wishlist_id=wishlist.id, _external=True)
+    # location_url = url_for("get_wishlists", wishlist_id=wishlist.id, _external=True)
     location_url = "/"
 
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
