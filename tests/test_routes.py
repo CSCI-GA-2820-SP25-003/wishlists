@@ -67,6 +67,26 @@ class TestWishlistService(TestCase):
         db.session.remove()
 
     ######################################################################
+    #  H E L P E R   M E T H O D S
+    ######################################################################
+
+    def _create_wishlists(self, count):
+        """Factory method to create wishlists in bulk"""
+        wishlists = []
+        for _ in range(count):
+            wishlist = WishlistFactory()
+            resp = self.client.post(BASE_URL, json=wishlist.serialize())
+            self.assertEqual(
+                resp.status_code,
+                status.HTTP_201_CREATED,
+                "Could not create test Wishlist",
+            )
+            new_wishlist = resp.get_json()
+            wishlist.id = new_wishlist["id"]
+            wishlists.append(wishlist)
+        return wishlists
+
+    ######################################################################
     #  P L A C E   T E S T   C A S E S   H E R E
     ######################################################################
 
@@ -76,6 +96,17 @@ class TestWishlistService(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     # Todo: Add your test cases here...
+
+    def test_get_wishlist(self):
+        """It should Read a single Wishlist"""
+        # get the id of an wishlist
+        wishlist = self._create_wishlists(1)[0]
+        resp = self.client.get(
+            f"{BASE_URL}/{wishlist.id}", content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["name"], wishlist.name)
 
     def test_create_wishlist(self):
         """It should Create a new Wishlist"""
@@ -99,11 +130,11 @@ class TestWishlistService(TestCase):
 
         # Todo: Uncomment this code when get_wishlists is implemented
         # Check that the location header was correct by getting it
-        # resp = self.client.get(location, content_type="application/json")
-        # self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        # new_wishlist = resp.get_json()
-        # self.assertEqual(new_wishlist["name"], wishlist.name, "Names does not match")
-        # self.assertEqual(new_wishlist["userid"], wishlist.userid, "Email does not match")
-        # self.assertEqual(
-        #     new_wishlist["products"], wishlist.products, "Product does not match"
-        # )
+        resp = self.client.get(location, content_type="application/json")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        new_wishlist = resp.get_json()
+        self.assertEqual(new_wishlist["name"], wishlist.name, "Names does not match")
+        self.assertEqual(new_wishlist["userid"], wishlist.userid, "User ID does not match")
+        self.assertEqual(
+            new_wishlist["products"], wishlist.products, "Product does not match"
+        )

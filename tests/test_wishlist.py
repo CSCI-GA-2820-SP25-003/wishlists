@@ -91,4 +91,16 @@ class TestWishlist(TestCase):
         self.assertEqual(data.name, wishlist.name)
         self.assertEqual(data.userid, wishlist.userid)
 
+    def test_read_wishlist(self):
+        """It should Read an wishlist"""
+        wishlist = WishlistFactory()
+        wishlist.create()
+
+        # Read it back
+        found_wishlist = Wishlist.find(wishlist.id)
+        self.assertEqual(found_wishlist.id, wishlist.id)
+        self.assertEqual(found_wishlist.name, wishlist.name)
+        self.assertEqual(found_wishlist.userid, wishlist.userid)
+        self.assertEqual(found_wishlist.products, [])
+
     # Todo: Add your test cases here...
