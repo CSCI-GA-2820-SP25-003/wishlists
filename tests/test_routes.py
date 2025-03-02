@@ -21,11 +21,12 @@ TestWishlist API Service Test Suite
 # pylint: disable=duplicate-code
 import os
 import logging
+from decimal import Decimal
 from unittest import TestCase
 from wsgi import app
 from service.common import status
 from service.models import db, Wishlist
-from .factories import WishlistFactory
+from .factories import WishlistFactory, ProductFactory
 
 BASE_URL = "/wishlists"
 
@@ -87,7 +88,7 @@ class TestWishlistService(TestCase):
         return wishlists
 
     ######################################################################
-    #  P L A C E   T E S T   C A S E S   H E R E
+    #  W I S H L I S T   T E S T   C A S E S
     ######################################################################
 
     def test_index(self):
@@ -138,3 +139,35 @@ class TestWishlistService(TestCase):
         self.assertEqual(
             new_wishlist["products"], wishlist.products, "Product does not match"
         )
+
+    ######################################################################
+    #  P R O D U C T   T E S T   C A S E S
+    ######################################################################
+
+    def test_add_product(self):
+        """It should Add an product to an wishlist"""
+        wishlist = self._create_wishlists(1)[0]
+        product = ProductFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{wishlist.id}/products",
+            json=product.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # Make sure location header is set
+        location = resp.headers.get("Location", None)
+        self.assertIsNotNone(location)
+
+        data = resp.get_json()
+        logging.debug(data)
+        self.assertEqual(data["wishlist_id"], wishlist.id)
+        self.assertEqual(data["name"], product.name)
+        self.assertEqual(Decimal(str(data["price"])), product.price)
+        self.assertEqual(data["description"], product.description)
+
+        # Check that the location header was correct by getting it
+        # resp = self.client.get(location, content_type="application/json")
+        # self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        # new_product = resp.get_json()
+        # self.assertEqual(new_product["name"], product.name, "Product name does not match")

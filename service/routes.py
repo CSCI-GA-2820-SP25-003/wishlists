@@ -92,6 +92,54 @@ def get_wishlists(wishlist_id):
     return jsonify(wishlist.serialize()), status.HTTP_200_OK
 
 
+# ---------------------------------------------------------------------
+#                P R O D U C T  M E T H O D S
+# ---------------------------------------------------------------------
+
+######################################################################
+# ADD A PRODUCT TO A WISHLIST
+######################################################################
+@app.route("/wishlists/<int:wishlist_id>/products", methods=["POST"])
+def create_products(wishlist_id):
+    """
+    Create an Product on a Wishlist
+
+    This endpoint will add a product to a wishlist
+    """
+    app.logger.info("Request to create a Product for Wishlist with id: %s", wishlist_id)
+    check_content_type("application/json")
+
+    # See if the wishlist exists and abort if it doesn't
+    wishlist = Wishlist.find(wishlist_id)
+    if not wishlist:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Wishlist with id '{wishlist_id}' could not be found.",
+        )
+
+    # Create a product from the json data
+    product = Product()
+    product.deserialize(request.get_json())
+
+    # Append the product to the wishlist
+    wishlist.products.append(product)
+    wishlist.update()
+
+    # Prepare a message to return
+    message = product.serialize()
+
+    # Todo: Uncomment this code when get_products is implemented
+    # Send the location to GET the new item
+    # location_url = url_for(
+    #     "get_products",
+    #     wishlist_id=wishlist.id,
+    #     product_id=product.id,
+    #     _external=True
+    # )
+    location_url = "/"
+    return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
+
+
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
