@@ -138,3 +138,11 @@ class TestWishlistService(TestCase):
         self.assertEqual(
             new_wishlist["products"], wishlist.products, "Product does not match"
         )
+
+    def test_get_wishlist_list(self):
+        """It should Get a list of Wishlists"""
+        self._create_wishlists(5)
+        resp = self.client.get(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)
