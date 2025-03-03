@@ -91,6 +91,44 @@ def get_wishlists(wishlist_id):
 
     return jsonify(wishlist.serialize()), status.HTTP_200_OK
 
+######################################################################
+# LIST ALL WISHLISTS
+######################################################################
+@app.route("/wishlists", methods=["GET"])
+def list_wishlists():
+    """Returns all of the Wishlists"""
+    app.logger.info("Request for wishlist list")
+
+    wishlists = []
+
+    category = request.args.get("category")
+    name = request.args.get("name")
+    available = request.args.get("available")
+    gender = request.args.get("gender")
+
+    if category:
+        app.logger.info("Find by category: %s", category)
+        wishlists = Wishlist.find_by_category(category)
+    elif name:
+        app.logger.info("Find by name: %s", name)
+        wishlists = Wishlist.find_by_name(name)
+    elif available:
+        app.logger.info("Find by available: %s", available)
+        available_value = available.lower() in ["true", "yes", "1"]
+        wishlists = Wishlist.find_by_availability(available_value)
+    elif gender:
+        app.logger.info("Find by gender: %s", gender)
+        wishlists = Wishlist.find_by_gender(gender.upper())  
+    else:
+        app.logger.info("Find all")
+        wishlists = Wishlist.all()
+
+    results = [wishlist.serialize() for wishlist in wishlists]
+    app.logger.info("Returning %d wishlists", len(results))
+    return jsonify(results), status.HTTP_200_OK
+
+
+
 
 # ---------------------------------------------------------------------
 #                P R O D U C T  M E T H O D S
