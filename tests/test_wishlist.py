@@ -104,3 +104,21 @@ class TestWishlist(TestCase):
         self.assertEqual(found_wishlist.products, [])
 
     # Todo: Add your test cases here...
+    def test_list_all_wishlists(self):
+        """It should List all Wishlists in the database"""
+
+        wishlists = Wishlist.all()
+        self.assertEqual(wishlists, [])
+
+        for _ in range(5):
+            wishlist = WishlistFactory()
+            wishlist.create()
+
+        wishlists = Wishlist.all()
+        self.assertEqual(len(wishlists), 5)  
+        for wishlist in wishlists:
+            found_wishlist = Wishlist.find(wishlist.id)
+            self.assertEqual(found_wishlist.id, wishlist.id)
+            self.assertEqual(found_wishlist.name, wishlist.name)
+            self.assertEqual(found_wishlist.userid, wishlist.userid)
+            self.assertEqual(found_wishlist.products, wishlist.products)
