@@ -140,6 +140,14 @@ class TestWishlistService(TestCase):
             new_wishlist["products"], wishlist.products, "Product does not match"
         )
 
+    def test_get_wishlist_list(self):
+        """It should Get a list of Wishlists"""
+        self._create_wishlists(5)
+        resp = self.client.get(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)
+
     ######################################################################
     #  P R O D U C T   T E S T   C A S E S
     ######################################################################
@@ -166,17 +174,48 @@ class TestWishlistService(TestCase):
         self.assertEqual(Decimal(str(data["price"])), product.price)
         self.assertEqual(data["description"], product.description)
 
+        # Todo: Uncomment this code when get_products is implemented
         # Check that the location header was correct by getting it
         # resp = self.client.get(location, content_type="application/json")
         # self.assertEqual(resp.status_code, status.HTTP_200_OK)
         # new_product = resp.get_json()
         # self.assertEqual(new_product["name"], product.name, "Product name does not match")
 
-    def test_get_wishlist_list(self):
-        """It should Get a list of Wishlists"""
-        self._create_wishlists(5)
-        resp = self.client.get(BASE_URL)
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        self.assertEqual(len(data), 5)
+    def test_update_product(self):
+        """It should Update a product in a wishlist"""
+        # create a known product
+        wishlist = self._create_wishlists(1)[0]
+        product = ProductFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{wishlist.id}/products",
+            json=product.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
+        data = resp.get_json()
+        logging.debug(data)
+        product_id = data["id"]
+        data["name"] = "XXXX"
+
+        # send the update back
+        resp = self.client.put(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            json=data,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Todo: Uncomment this code when get_products is implemented
+        # retrieve it back
+        # resp = self.client.get(
+        #     f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+        #     content_type="application/json",
+        # )
+        # self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # data = resp.get_json()
+        # logging.debug(data)
+        # self.assertEqual(data["id"], product_id)
+        # self.assertEqual(data["wishlist_id"], wishlist.id)
+        # self.assertEqual(data["name"], "XXXX")

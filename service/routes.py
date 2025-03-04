@@ -94,6 +94,8 @@ def get_wishlists(wishlist_id):
 ######################################################################
 # LIST ALL WISHLISTS
 ######################################################################
+
+
 @app.route("/wishlists", methods=["GET"])
 def list_wishlists():
     """Returns all of the Wishlists"""
@@ -128,8 +130,6 @@ def list_wishlists():
     return jsonify(results), status.HTTP_200_OK
 
 
-
-
 # ---------------------------------------------------------------------
 #                P R O D U C T  M E T H O D S
 # ---------------------------------------------------------------------
@@ -137,6 +137,8 @@ def list_wishlists():
 ######################################################################
 # ADD A PRODUCT TO A WISHLIST
 ######################################################################
+
+
 @app.route("/wishlists/<int:wishlist_id>/products", methods=["POST"])
 def create_products(wishlist_id):
     """
@@ -176,6 +178,38 @@ def create_products(wishlist_id):
     # )
     location_url = "/"
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
+
+######################################################################
+# UPDATE A PRODUCT
+######################################################################
+
+
+@app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>", methods=["PUT"])
+def update_products(wishlist_id, product_id):
+    """
+    Update a Product
+
+    This endpoint will update a Product based the body that is posted
+    """
+    app.logger.info(
+        "Request to update Product %s for Wishlist id: %s", (product_id, wishlist_id)
+    )
+    check_content_type("application/json")
+
+    # See if the product exists and abort if it doesn't
+    product = Product.find(product_id)
+    if not product:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Wishlist with id '{product_id}' could not be found.",
+        )
+
+    # Update from the json in the body of the request
+    product.deserialize(request.get_json())
+    product.id = product_id
+    product.update()
+
+    return jsonify(product.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
