@@ -124,18 +124,21 @@ class TestWishlistService(TestCase):
         # Check the data is correct
         new_wishlist = resp.get_json()
         self.assertEqual(new_wishlist["name"], wishlist.name, "Names does not match")
-        self.assertEqual(new_wishlist["userid"], wishlist.userid, "Email does not match")
+        self.assertEqual(
+            new_wishlist["userid"], wishlist.userid, "Email does not match"
+        )
         self.assertEqual(
             new_wishlist["products"], wishlist.products, "Product does not match"
         )
 
-        # Todo: Uncomment this code when get_wishlists is implemented
         # Check that the location header was correct by getting it
         resp = self.client.get(location, content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         new_wishlist = resp.get_json()
         self.assertEqual(new_wishlist["name"], wishlist.name, "Names does not match")
-        self.assertEqual(new_wishlist["userid"], wishlist.userid, "User ID does not match")
+        self.assertEqual(
+            new_wishlist["userid"], wishlist.userid, "User ID does not match"
+        )
         self.assertEqual(
             new_wishlist["products"], wishlist.products, "Product does not match"
         )
@@ -174,12 +177,13 @@ class TestWishlistService(TestCase):
         self.assertEqual(Decimal(str(data["price"])), product.price)
         self.assertEqual(data["description"], product.description)
 
-        # Todo: Uncomment this code when get_products is implemented
         # Check that the location header was correct by getting it
-        # resp = self.client.get(location, content_type="application/json")
-        # self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        # new_product = resp.get_json()
-        # self.assertEqual(new_product["name"], product.name, "Product name does not match")
+        resp = self.client.get(location, content_type="application/json")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        new_product = resp.get_json()
+        self.assertEqual(
+            new_product["name"], product.name, "Product name does not match"
+        )
 
     def test_update_product(self):
         """It should Update a product in a wishlist"""
@@ -206,16 +210,45 @@ class TestWishlistService(TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-        # Todo: Uncomment this code when get_products is implemented
         # retrieve it back
-        # resp = self.client.get(
-        #     f"{BASE_URL}/{wishlist.id}/products/{product_id}",
-        #     content_type="application/json",
-        # )
-        # self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        resp = self.client.get(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-        # data = resp.get_json()
-        # logging.debug(data)
-        # self.assertEqual(data["id"], product_id)
-        # self.assertEqual(data["wishlist_id"], wishlist.id)
-        # self.assertEqual(data["name"], "XXXX")
+        data = resp.get_json()
+        logging.debug(data)
+        self.assertEqual(data["id"], product_id)
+        self.assertEqual(data["wishlist_id"], wishlist.id)
+        self.assertEqual(data["name"], "XXXX")
+
+    def test_get_product(self):
+        """It should Get an product from an wishlist"""
+        # create a known product
+        wishlist = self._create_wishlists(1)[0]
+        product = ProductFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{wishlist.id}/products",
+            json=product.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        data = resp.get_json()
+        logging.debug(data)
+        product_id = data["id"]
+
+        # retrieve it back
+        resp = self.client.get(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        logging.debug(data)
+        self.assertEqual(data["wishlist_id"], wishlist.id)
+        self.assertEqual(data["name"], product.name)
+        self.assertEqual(Decimal(str(data["price"])), product.price)
+        self.assertEqual(data["description"], product.description)

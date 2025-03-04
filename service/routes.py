@@ -43,6 +43,7 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
+
 ######################################################################
 # CREATE A NEW WISHLIST
 ######################################################################
@@ -67,6 +68,7 @@ def create_wishlists():
 
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
 
+
 ######################################################################
 # RETRIEVE AN ACCOUNT
 ######################################################################
@@ -90,6 +92,7 @@ def get_wishlists(wishlist_id):
         )
 
     return jsonify(wishlist.serialize()), status.HTTP_200_OK
+
 
 ######################################################################
 # LIST ALL WISHLISTS
@@ -120,7 +123,7 @@ def list_wishlists():
         wishlists = Wishlist.find_by_availability(available_value)
     elif gender:
         app.logger.info("Find by gender: %s", gender)
-        wishlists = Wishlist.find_by_gender(gender.upper())  
+        wishlists = Wishlist.find_by_gender(gender.upper())
     else:
         app.logger.info("Find all")
         wishlists = Wishlist.all()
@@ -168,16 +171,12 @@ def create_products(wishlist_id):
     # Prepare a message to return
     message = product.serialize()
 
-    # Todo: Uncomment this code when get_products is implemented
     # Send the location to GET the new item
-    # location_url = url_for(
-    #     "get_products",
-    #     wishlist_id=wishlist.id,
-    #     product_id=product.id,
-    #     _external=True
-    # )
-    location_url = "/"
+    location_url = url_for(
+        "get_products", wishlist_id=wishlist.id, product_id=product.id, _external=True
+    )
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
+
 
 ######################################################################
 # UPDATE A PRODUCT
@@ -208,6 +207,31 @@ def update_products(wishlist_id, product_id):
     product.deserialize(request.get_json())
     product.id = product_id
     product.update()
+
+    return jsonify(product.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+# RETRIEVE AN ADDRESS FROM ACCOUNT
+######################################################################
+@app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>", methods=["GET"])
+def get_products(wishlist_id, product_id):
+    """
+    Get an Product
+
+    This endpoint returns just an product
+    """
+    app.logger.info(
+        "Request to retrieve Product %s for Wishlist id: %s", (product_id, wishlist_id)
+    )
+
+    # See if the product exists and abort if it doesn't
+    product = Product.find(product_id)
+    if not product:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Wishlist with id '{product_id}' could not be found.",
+        )
 
     return jsonify(product.serialize()), status.HTTP_200_OK
 

@@ -115,7 +115,7 @@ class TestWishlist(TestCase):
             wishlist.create()
 
         wishlists = Wishlist.all()
-        self.assertEqual(len(wishlists), 5)  
+        self.assertEqual(len(wishlists), 5)
         for wishlist in wishlists:
             found_wishlist = Wishlist.find(wishlist.id)
             self.assertEqual(found_wishlist.id, wishlist.id)
