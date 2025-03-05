@@ -270,6 +270,48 @@ def get_products(wishlist_id, product_id):
 
     return jsonify(product.serialize()), status.HTTP_200_OK
 
+######################################################################
+# DELETE A PRODUCT FROM WISHLIST
+######################################################################
+@app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>", methods=["DELETE"])
+def delete_products(wishlist_id, product_id):
+    """
+    Delete a Product from a Wishlist
+
+    This endpoint will remove a product entirely from the database.
+    """
+    app.logger.info("Request to delete Product %s for Wishlist id: %s", product_id, wishlist_id)
+
+    # Retrieve the wishlist
+    wishlist = Wishlist.find(wishlist_id)
+    if not wishlist:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Wishlist with id '{wishlist_id}' could not be found.",
+        )
+
+    # Retrieve the product
+    product = Product.find(product_id)
+    if not product:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Product with id '{product_id}' could not be found.",
+        )
+
+    # Ensure the product is part of the wishlist
+    if product not in wishlist.products:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Product with id '{product_id}' is not in Wishlist '{wishlist_id}'.",
+        )
+
+    # Delete the product from the database
+    product.delete()  # Assumes that your Product model has a delete() method that handles deletion
+    return (
+        jsonify({"message": f"Product {product_id} deleted from Wishlist {wishlist_id}"}),
+        status.HTTP_200_OK,
+    )
+
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
