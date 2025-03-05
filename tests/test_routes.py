@@ -143,6 +143,22 @@ class TestWishlistService(TestCase):
             new_wishlist["products"], wishlist.products, "Product does not match"
         )
 
+    def test_update_wishlist(self):
+        """It should Update an existing Wishlist"""
+        # create a wishlist to update
+        test_wishlist = WishlistFactory()
+        response = self.client.post(BASE_URL, json=test_wishlist.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # update the wishlist
+        new_wishlist = response.get_json()
+        logging.debug(new_wishlist)
+        new_wishlist["name"] = "Updated Wishlist Name"
+        response = self.client.put(f"{BASE_URL}/{new_wishlist['id']}", json=new_wishlist)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_wishlist = response.get_json()
+        self.assertEqual(updated_wishlist["name"], "Updated Wishlist Name")
+
     def test_get_wishlist_list(self):
         """It should Get a list of Wishlists"""
         self._create_wishlists(5)
