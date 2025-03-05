@@ -308,3 +308,42 @@ class TestWishlistService(TestCase):
 
         data = resp.get_json()
         self.assertEqual(len(data), 2)
+
+    def test_delete_product(self):
+        """It should Delete a product from an wishlist"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Create a product for the wishlist
+        product = ProductFactory()
+        post_resp = self.client.post(
+            f"{BASE_URL}/{wishlist.id}/products",
+            json=product.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(post_resp.status_code, status.HTTP_201_CREATED)
+        product_data = post_resp.get_json()
+        product_id = product_data["id"]
+
+        # Confirm the product exists by retrieving it
+        get_resp = self.client.get(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(get_resp.status_code, status.HTTP_200_OK)
+
+        # Delete the product using the DELETE endpoint
+        delete_resp = self.client.delete(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(delete_resp.status_code, status.HTTP_200_OK)
+        delete_data = delete_resp.get_json()
+        self.assertIn("deleted", delete_data["message"].lower())
+
+        # Verify the product no longer exists (should return 404)
+        get_resp_after = self.client.get(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(get_resp_after.status_code, status.HTTP_404_NOT_FOUND)
