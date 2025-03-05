@@ -335,7 +335,7 @@ def delete_products(wishlist_id, product_id):
         jsonify(
             {"message": f"Product {product_id} deleted from Wishlist {wishlist_id}"}
         ),
-        status.HTTP_200_OK,
+        status.HTTP_204_NO_CONTENT,
     )
 
 
@@ -362,7 +362,7 @@ def delete_wishlists(wishlist_id):
     # Delete the wishlist
     wishlist.delete()
 
-    return jsonify({"message": f"Wishlist {wishlist_id} deleted"}), status.HTTP_200_OK
+    return jsonify({"message": f"Wishlist {wishlist_id} deleted"}), status.HTTP_204_NO_CONTENT
 
 
 # ######################################################################

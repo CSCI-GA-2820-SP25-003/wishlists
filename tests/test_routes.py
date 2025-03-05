@@ -196,27 +196,42 @@ class TestWishlistService(TestCase):
         resp = self.client.delete(BASE_URL)
         self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_delete_wishlist(self):
-        """It should Delete a Wishlist"""
-        # Create a wishlist to delete
+    def test_delete_product(self):
+        """It should Delete a product from an wishlist"""
+        # Create a wishlist
         wishlist = self._create_wishlists(1)[0]
 
-        # Add a product to the wishlist to ensure cascade delete works
+        # Create a product for the wishlist
         product = ProductFactory()
-        resp = self.client.post(
+        post_resp = self.client.post(
             f"{BASE_URL}/{wishlist.id}/products",
             json=product.serialize(),
             content_type="application/json",
         )
-        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(post_resp.status_code, status.HTTP_201_CREATED)
+        product_data = post_resp.get_json()
+        product_id = product_data["id"]
 
-        # Delete the wishlist
-        resp = self.client.delete(f"{BASE_URL}/{wishlist.id}")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        # Confirm the product exists by retrieving it
+        get_resp = self.client.get(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(get_resp.status_code, status.HTTP_200_OK)
 
-        # Verify the wishlist was deleted
-        resp = self.client.get(f"{BASE_URL}/{wishlist.id}")
-        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        # Delete the product using the DELETE endpoint
+        delete_resp = self.client.delete(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(delete_resp.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Verify the product no longer exists (should return 404)
+        get_resp_after = self.client.get(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(get_resp_after.status_code, status.HTTP_404_NOT_FOUND)
 
     # Completed
 
@@ -347,45 +362,6 @@ class TestWishlistService(TestCase):
         data = resp.get_json()
         self.assertEqual(len(data), 2)
 
-    def test_delete_product(self):
-        """It should Delete a product from an wishlist"""
-        # Create a wishlist
-        wishlist = self._create_wishlists(1)[0]
-
-        # Create a product for the wishlist
-        product = ProductFactory()
-        post_resp = self.client.post(
-            f"{BASE_URL}/{wishlist.id}/products",
-            json=product.serialize(),
-            content_type="application/json",
-        )
-        self.assertEqual(post_resp.status_code, status.HTTP_201_CREATED)
-        product_data = post_resp.get_json()
-        product_id = product_data["id"]
-
-        # Confirm the product exists by retrieving it
-        get_resp = self.client.get(
-            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
-            content_type="application/json",
-        )
-        self.assertEqual(get_resp.status_code, status.HTTP_200_OK)
-
-        # Delete the product using the DELETE endpoint
-        delete_resp = self.client.delete(
-            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
-            content_type="application/json",
-        )
-        self.assertEqual(delete_resp.status_code, status.HTTP_200_OK)
-        delete_data = delete_resp.get_json()
-        self.assertIn("deleted", delete_data["message"].lower())
-
-        # Verify the product no longer exists (should return 404)
-        get_resp_after = self.client.get(
-            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
-            content_type="application/json",
-        )
-        self.assertEqual(get_resp_after.status_code, status.HTTP_404_NOT_FOUND)
-
     def test_health_check(self):
         """It should return healthy status"""
         resp = self.client.get("/health")
@@ -432,11 +408,7 @@ class TestWishlistService(TestCase):
 
         # Delete the wishlist
         resp = self.client.delete(f"{BASE_URL}/{wishlist.id}")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-
-        # Verify the returned message
-        data = resp.get_json()
-        self.assertEqual(data["message"], f"Wishlist {wishlist.id} deleted")
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
 
         # Verify the wishlist was deleted
         resp = self.client.get(f"{BASE_URL}/{wishlist.id}")
