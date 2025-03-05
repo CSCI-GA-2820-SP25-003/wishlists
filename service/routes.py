@@ -44,7 +44,11 @@ def health_check():
 def index():
     """Root URL response"""
     return (
-        "Reminder: return some useful information in json format about the service here",
+        jsonify(
+            name="Wishlist REST API Service",
+            version="1.0",
+            paths=url_for("list_wishlists", _external=True),
+        ),
         status.HTTP_200_OK,
     )
 
