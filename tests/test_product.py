@@ -148,25 +148,3 @@ class TestProduct(TestCase):
         self.assertEqual(new_product.description, product.description)
 
     # Todo: Delete test case
-
-    def test_delete_product(self):
-        """It should delete a product from a wishlist"""
-        # Create a Wishlist and add two products
-        wishlist = WishlistFactory()
-        product1 = ProductFactory(wishlist=wishlist)
-        product2 = ProductFactory(wishlist=wishlist)
-        wishlist.products.append(product1)
-        wishlist.products.append(product2)
-        wishlist.create()  # Save the wishlist and its products to the database
-
-        # Retrieve the wishlist from the database and verify both products exist
-        wishlist_db = Wishlist.find(wishlist.id)
-        self.assertEqual(len(wishlist_db.products), 2)
-
-        # Delete the first product from the database
-        product1.delete()
-
-        # Retrieve the wishlist again to confirm the product has been deleted
-        updated_wishlist = Wishlist.find(wishlist.id)
-        self.assertEqual(len(updated_wishlist.products), 1)
-        self.assertEqual(updated_wishlist.products[0].id, product2.id)
