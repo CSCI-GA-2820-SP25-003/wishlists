@@ -71,10 +71,9 @@ class TestWishlist(TestCase):
         """It should Create a Wishlist and assert that it exists"""
         fake_wishlist = WishlistFactory()
         # pylint: disable=unexpected-keyword-arg
-        wishlist = Wishlist(
-            name=fake_wishlist.name,
-            userid=fake_wishlist.userid,
-        )
+        wishlist = Wishlist()
+        wishlist.name = fake_wishlist.name
+        wishlist.userid = fake_wishlist.userid
         self.assertIsNotNone(wishlist)
         self.assertEqual(wishlist.id, None)
         self.assertEqual(wishlist.name, fake_wishlist.name)
@@ -186,5 +185,83 @@ class TestWishlist(TestCase):
         """It should not Deserialize an product with a TypeError"""
         product = Product()
         self.assertRaises(DataValidationError, product.deserialize, [])
+
+    def test_delete_wishlist(self):
+        """It should Delete a wishlist and its products"""
+        # Create a wishlist directly through SQLAlchemy
+        wishlist = Wishlist()
+        wishlist.name = "Test Wishlist"
+        wishlist.userid = "test_user"
+        db.session.add(wishlist)
+        db.session.commit()
+        wishlist_id = wishlist.id
+
+        # Create a product directly through SQLAlchemy
+        product = Product(
+            wishlist_id=wishlist_id,
+            name="Test Product",
+            price=10.99,
+            description="Test Description",
+        )
+        db.session.add(product)
+        db.session.commit()
+        product_id = product.id
+
+        # Verify the product exists
+        products = (
+            db.session.query(Product).filter(Product.wishlist_id == wishlist_id).all()
+        )
+        self.assertEqual(len(products), 1)
+
+        # Delete the wishlist using direct SQLAlchemy
+        db.session.delete(wishlist)
+        db.session.commit()
+
+        # Verify the wishlist no longer exists
+        found_wishlist = db.session.get(Wishlist, wishlist_id)  # Updated method
+        self.assertIsNone(found_wishlist)
+
+        # Verify the product was also deleted
+        found_product = db.session.get(Product, product_id)  # Updated method
+        self.assertIsNone(found_product)
+
+    def test_update_wishlist(self):
+        """It should Update a wishlist"""
+        # Create a wishlist
+        wishlist = WishlistFactory()
+        wishlist.create()
+
+        # Update the wishlist
+        wishlist.name = "Updated Name"
+        wishlist.update()
+
+        # Verify the update was successful
+        found_wishlist = Wishlist.find(wishlist.id)
+        self.assertEqual(found_wishlist.name, "Updated Name")
+
+    def test_update_with_empty_id(self):
+        """It should raise an error when updating with empty ID"""
+        wishlist = Wishlist()
+        wishlist.name = "Test Wishlist"
+        wishlist.userid = "test_user"
+        self.assertRaises(DataValidationError, wishlist.update)
+
+    @patch("service.models.db.session.commit")
+    def test_update_error(self, mock_commit):
+        """It should handle errors on update"""
+        mock_commit.side_effect = Exception("Database error")
+        wishlist = WishlistFactory()
+        wishlist.create()
+        wishlist.name = "Updated Name"
+        self.assertRaises(DataValidationError, wishlist.update)
+
+    @patch("service.models.db.session.add")
+    def test_create_error(self, mock_add):
+        """It should handle errors on create"""
+        mock_add.side_effect = Exception("Database error")
+        wishlist = Wishlist()
+        wishlist.name = "Test Wishlist"
+        wishlist.userid = "test_user"
+        self.assertRaises(DataValidationError, wishlist.create)
 
     # Todo: Update and Delete test cases

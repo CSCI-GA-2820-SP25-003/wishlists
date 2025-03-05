@@ -35,6 +35,7 @@ def health_check():
     """Let them know our heart is still beating"""
     return jsonify(status=200, message="Healthy"), status.HTTP_200_OK
 
+
 ######################################################################
 # GET INDEX
 ######################################################################
@@ -181,6 +182,7 @@ def update_wishlists(wishlist_id):
 #                P R O D U C T  M E T H O D S
 # ---------------------------------------------------------------------
 
+
 ######################################################################
 # LIST PRODUCTS
 ######################################################################
@@ -201,6 +203,7 @@ def list_products(wishlist_id):
     results = [product.serialize() for product in wishlist.products]
 
     return jsonify(results), status.HTTP_200_OK
+
 
 ######################################################################
 # ADD A PRODUCT TO A WISHLIST
@@ -300,6 +303,7 @@ def get_products(wishlist_id, product_id):
 
     return jsonify(product.serialize()), status.HTTP_200_OK
 
+
 ######################################################################
 # DELETE A PRODUCT FROM WISHLIST
 ######################################################################
@@ -310,7 +314,9 @@ def delete_products(wishlist_id, product_id):
 
     This endpoint will remove a product entirely from the database.
     """
-    app.logger.info("Request to delete Product %s for Wishlist id: %s", product_id, wishlist_id)
+    app.logger.info(
+        "Request to delete Product %s for Wishlist id: %s", product_id, wishlist_id
+    )
 
     # Retrieve the wishlist
     wishlist = Wishlist.find(wishlist_id)
@@ -338,9 +344,66 @@ def delete_products(wishlist_id, product_id):
     # Delete the product from the database
     product.delete()  # Assumes that your Product model has a delete() method that handles deletion
     return (
-        jsonify({"message": f"Product {product_id} deleted from Wishlist {wishlist_id}"}),
+        jsonify(
+            {"message": f"Product {product_id} deleted from Wishlist {wishlist_id}"}
+        ),
         status.HTTP_200_OK,
     )
+
+
+######################################################################
+# DELETE A WISHLIST
+######################################################################
+@app.route("/wishlists/<int:wishlist_id>", methods=["DELETE"])
+def delete_wishlists(wishlist_id):
+    """
+    Delete a Wishlist
+
+    This endpoint will delete a Wishlist based on the id specified in the path
+    """
+    app.logger.info("Request to delete wishlist with id: %s", wishlist_id)
+
+    # Retrieve the wishlist
+    wishlist = Wishlist.find(wishlist_id)
+    if not wishlist:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Wishlist with id '{wishlist_id}' could not be found.",
+        )
+
+    # Delete the wishlist
+    wishlist.delete()
+
+    return jsonify({"message": f"Wishlist {wishlist_id} deleted"}), status.HTTP_200_OK
+
+
+######################################################################
+# UPDATE A WISHLIST
+######################################################################
+@app.route("/wishlists/<int:wishlist_id>", methods=["PUT"])
+def update_wishlists(wishlist_id):
+    """
+    Update a Wishlist
+
+    This endpoint will update a Wishlist based the body that is posted
+    """
+    app.logger.info("Request to update wishlist with id: %s", wishlist_id)
+    check_content_type("application/json")
+
+    # Retrieve the wishlist
+    wishlist = Wishlist.find(wishlist_id)
+    if not wishlist:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Wishlist with id '{wishlist_id}' could not be found.",
+        )
+
+    # Update the wishlist
+    wishlist.deserialize(request.get_json())
+    wishlist.id = wishlist_id
+    wishlist.update()
+
+    return jsonify(wishlist.serialize()), status.HTTP_200_OK
 
 
 ######################################################################

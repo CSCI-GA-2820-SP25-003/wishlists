@@ -193,8 +193,54 @@ class TestWishlistService(TestCase):
 
     def test_method_not_allowed(self):
         """It should not allow an illegal method call"""
-        resp = self.client.put(BASE_URL, json={"not": "today"})
+        resp = self.client.delete(BASE_URL)
         self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_delete_wishlist(self):
+        """It should Delete a Wishlist"""
+        # Create a wishlist to delete
+        wishlist = self._create_wishlists(1)[0]
+
+        # Add a product to the wishlist to ensure cascade delete works
+        product = ProductFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{wishlist.id}/products",
+            json=product.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # Delete the wishlist
+        resp = self.client.delete(f"{BASE_URL}/{wishlist.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Verify the wishlist was deleted
+        resp = self.client.get(f"{BASE_URL}/{wishlist.id}")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_wishlist(self):
+        """It should Update a Wishlist"""
+        # Create a wishlist to update
+        test_wishlist = self._create_wishlists(1)[0]
+
+        # Update the wishlist
+        test_wishlist.name = "Updated Name"
+        resp = self.client.put(
+            f"{BASE_URL}/{test_wishlist.id}",
+            json=test_wishlist.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Check that the update was successful
+        updated_wishlist = resp.get_json()
+        self.assertEqual(updated_wishlist["name"], "Updated Name")
+
+        # Verify the update persisted
+        resp = self.client.get(f"{BASE_URL}/{test_wishlist.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        retrieved_wishlist = resp.get_json()
+        self.assertEqual(retrieved_wishlist["name"], "Updated Name")
 
     # Todo: Delete and update test cases
 
@@ -363,3 +409,41 @@ class TestWishlistService(TestCase):
             content_type="application/json",
         )
         self.assertEqual(get_resp_after.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_health_check(self):
+        """It should return healthy status"""
+        resp = self.client.get("/health")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["status"], 200)
+        self.assertEqual(data["message"], "Healthy")
+
+    def test_update_wishlist_not_found(self):
+        """It should not update a Wishlist that is not found"""
+        resp = self.client.put(
+            f"{BASE_URL}/0",
+            json={"name": "Not Found Wishlist", "userid": "user1"},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_product_not_found(self):
+        """It should not update a Product that is not found"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+        # Try to update a non-existent product
+        resp = self.client.put(
+            f"{BASE_URL}/{wishlist.id}/products/0",
+            json={
+                "name": "Missing Product",
+                "price": 13.99,
+                "description": "Not Found",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_wishlist_not_found(self):
+        """It should not Delete a Wishlist that is not found"""
+        resp = self.client.delete(f"{BASE_URL}/0")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
