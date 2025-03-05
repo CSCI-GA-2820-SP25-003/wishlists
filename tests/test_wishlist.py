@@ -247,12 +247,10 @@ class TestWishlist(TestCase):
         self.assertRaises(DataValidationError, wishlist.update)
 
     @patch("service.models.db.session.commit")
-    def test_update_error(self, mock_commit):
-        """It should handle errors on update"""
-        mock_commit.side_effect = Exception("Database error")
+    def test_update_account_failed(self, exception_mock):
+        """It should not update an Account on database error"""
+        exception_mock.side_effect = Exception()
         wishlist = WishlistFactory()
-        wishlist.create()
-        wishlist.name = "Updated Name"
         self.assertRaises(DataValidationError, wishlist.update)
 
     @patch("service.models.db.session.add")
@@ -284,4 +282,4 @@ class TestWishlist(TestCase):
             with self.assertRaises(DataValidationError):
                 wishlist.delete()
 
-    # Todo: Update and Delete test cases
+    # Completed

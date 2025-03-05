@@ -22,10 +22,10 @@ Test cases for Product Model
 import os
 import logging
 from unittest import TestCase
+from unittest.mock import patch
 from tests.factories import ProductFactory, WishlistFactory
 from wsgi import app
 from service.models import Wishlist, Product, db
-from unittest.mock import patch
 from service.models import DataValidationError
 
 DATABASE_URI = os.getenv(
@@ -149,7 +149,7 @@ class TestProduct(TestCase):
         self.assertEqual(new_product.price, product.price)
         self.assertEqual(new_product.description, product.description)
 
-    # Todo: Delete test case
+    # Completed
 
     def test_delete_product(self):
         """It should delete a product from a wishlist"""
