@@ -22,6 +22,38 @@ Wishlist Products have the following fields:
 - description
 ```
 
+## Contents
+```
+.gitignore          - this will ignore vagrant and other metadata files
+.flaskenv           - Environment variables to configure Flask
+.gitattributes      - File to gix Windows CRLF issues
+.devcontainers/     - Folder with support for VSCode Remote Containers
+dot-env-example     - copy to .env to use environment variables
+pyproject.toml      - Poetry list of Python libraries required by your code
+
+service/                   - service python package
+├── __init__.py            - package initializer
+├── config.py              - configuration parameters
+├── routes.py              - module with service routes
+├── common                 - common code package
+    ├── cli_commands.py    - Flask command to recreate all tables
+    ├── error_handlers.py  - HTTP error handling code
+    ├── log_handlers.py    - logging setup code
+    └── status.py          - HTTP status constants
+└── models                 - business models
+    ├── persistent_base.py - module with Persistent Base model
+    ├── product.py         - module with Product model
+    └── wishlist.py        - module with Wishlist model
+
+tests/                     - test cases package
+├── __init__.py            - package initializer
+├── factories.py           - Factory for testing with fake objects
+├── test_cli_commands.py   - test suite for the CLI
+├── test_product.py        - test suite for Products
+├── test_wishlist.py       - test suite for Wishlists
+└── test_routes.py         - test suite for service routes
+```
+
 ## Information about this repo
 ```
 Endpoint          Methods  Rule
