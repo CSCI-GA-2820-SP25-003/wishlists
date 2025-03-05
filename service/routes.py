@@ -28,8 +28,18 @@ from service.common import status  # HTTP Status Codes
 
 
 ######################################################################
+# GET HEALTH CHECK
+######################################################################
+@app.route("/health")
+def health_check():
+    """Let them know our heart is still beating"""
+    return jsonify(status=200, message="Healthy"), status.HTTP_200_OK
+
+######################################################################
 # GET INDEX
 ######################################################################
+
+
 @app.route("/")
 def index():
     """Root URL response"""
@@ -63,7 +73,7 @@ def create_wishlists():
 
     # Create a message to return
     message = wishlist.serialize()
-    # Todo: Uncomment this code when get_wishlists is implemented
+    # Completed
     location_url = url_for("get_wishlists", wishlist_id=wishlist.id, _external=True)
 
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
@@ -136,6 +146,27 @@ def list_wishlists():
 # ---------------------------------------------------------------------
 #                P R O D U C T  M E T H O D S
 # ---------------------------------------------------------------------
+
+######################################################################
+# LIST PRODUCTS
+######################################################################
+@app.route("/wishlists/<int:wishlist_id>/products", methods=["GET"])
+def list_products(wishlist_id):
+    """Returns all of the Products for an Wishlist"""
+    app.logger.info("Request for all Products for Wishlist with id: %s", wishlist_id)
+
+    # See if the wishlist exists and abort if it doesn't
+    wishlist = Wishlist.find(wishlist_id)
+    if not wishlist:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Wishlist with id '{wishlist_id}' could not be found.",
+        )
+
+    # Get the products for the wishlist
+    results = [product.serialize() for product in wishlist.products]
+
+    return jsonify(results), status.HTTP_200_OK
 
 ######################################################################
 # ADD A PRODUCT TO A WISHLIST
@@ -212,7 +243,7 @@ def update_products(wishlist_id, product_id):
 
 
 ######################################################################
-# RETRIEVE AN ADDRESS FROM ACCOUNT
+# RETRIEVE A PRODUCT FROM WISHLIST
 ######################################################################
 @app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>", methods=["GET"])
 def get_products(wishlist_id, product_id):

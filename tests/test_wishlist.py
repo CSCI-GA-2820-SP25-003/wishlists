@@ -22,9 +22,10 @@ Test cases for Wishlist Model
 import os
 import logging
 from unittest import TestCase
-from tests.factories import WishlistFactory
+from unittest.mock import patch
+from tests.factories import WishlistFactory, ProductFactory
 from wsgi import app
-from service.models import Wishlist, Product, db
+from service.models import Wishlist, Product, db, DataValidationError
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -67,29 +68,35 @@ class TestWishlist(TestCase):
     ######################################################################
 
     def test_create_a_wishlist(self):
-        """It should Create a Wishlist"""
-        # fake_wishlist = WishlistFactory()
-        # # pylint: disable=unexpected-keyword-arg
-        # wishlist = Wishlist(
-        #     name=fake_wishlist.name,
-        #     userid=fake_wishlist.userid,
-        #     email=fake_wishlist.email,
-        #     phone_number=fake_wishlist.phone_number,
-        #     date_joined=fake_wishlist.date_joined,
-        # )
-        # self.assertIsNotNone(wishlist)
-        # self.assertEqual(wishlist.id, None)
-        # self.assertEqual(wishlist.name, fake_wishlist.name)
-        # self.assertEqual(wishlist.userid, fake_wishlist.userid)
+        """It should Create a Wishlist and assert that it exists"""
+        fake_wishlist = WishlistFactory()
+        # pylint: disable=unexpected-keyword-arg
+        wishlist = Wishlist(
+            name=fake_wishlist.name,
+            userid=fake_wishlist.userid,
+        )
+        self.assertIsNotNone(wishlist)
+        self.assertEqual(wishlist.id, None)
+        self.assertEqual(wishlist.name, fake_wishlist.name)
+        self.assertEqual(wishlist.userid, fake_wishlist.userid)
 
+    def test_add_a_wishlist(self):
+        """It should Create an wishlist and add it to the database"""
+        wishlists = Wishlist.all()
+        self.assertEqual(wishlists, [])
         wishlist = WishlistFactory()
         wishlist.create()
+        # Assert that it was assigned an id and shows up in the database
         self.assertIsNotNone(wishlist.id)
-        found = Wishlist.all()
-        self.assertEqual(len(found), 1)
-        data = Wishlist.find(wishlist.id)
-        self.assertEqual(data.name, wishlist.name)
-        self.assertEqual(data.userid, wishlist.userid)
+        wishlists = Wishlist.all()
+        self.assertEqual(len(wishlists), 1)
+
+    @patch("service.models.db.session.commit")
+    def test_add_wishlist_failed(self, exception_mock):
+        """It should not create a Wishlist on database error"""
+        exception_mock.side_effect = Exception()
+        wishlist = WishlistFactory()
+        self.assertRaises(DataValidationError, wishlist.create)
 
     def test_read_wishlist(self):
         """It should Read an wishlist"""
@@ -103,7 +110,6 @@ class TestWishlist(TestCase):
         self.assertEqual(found_wishlist.userid, wishlist.userid)
         self.assertEqual(found_wishlist.products, [])
 
-    # Todo: Add your test cases here...
     def test_list_all_wishlists(self):
         """It should List all Wishlists in the database"""
 
@@ -122,3 +128,63 @@ class TestWishlist(TestCase):
             self.assertEqual(found_wishlist.name, wishlist.name)
             self.assertEqual(found_wishlist.userid, wishlist.userid)
             self.assertEqual(found_wishlist.products, wishlist.products)
+
+    def test_find_by_name(self):
+        """It should Find an Wishlist by name"""
+        wishlist = WishlistFactory()
+        wishlist.create()
+
+        # Fetch it back by name
+        same_wishlist = Wishlist.find_by_name(wishlist.name)[0]
+        self.assertEqual(same_wishlist.id, wishlist.id)
+        self.assertEqual(same_wishlist.name, wishlist.name)
+
+    def test_serialize_an_wishlist(self):
+        """It should Serialize a wishlist"""
+        wishlist = WishlistFactory()
+        product = ProductFactory()
+        wishlist.products.append(product)
+        serial_wishlist = wishlist.serialize()
+        self.assertEqual(serial_wishlist["id"], wishlist.id)
+        self.assertEqual(serial_wishlist["name"], wishlist.name)
+        self.assertEqual(serial_wishlist["userid"], wishlist.userid)
+        self.assertEqual(len(serial_wishlist["products"]), 1)
+        products = serial_wishlist["products"]
+        self.assertEqual(products[0]["id"], product.id)
+        self.assertEqual(products[0]["wishlist_id"], product.wishlist_id)
+        self.assertEqual(products[0]["name"], product.name)
+        self.assertEqual(products[0]["price"], product.price)
+        self.assertEqual(products[0]["description"], product.description)
+
+    def test_deserialize_an_wishlist(self):
+        """It should Deserialize an wishlist"""
+        wishlist = WishlistFactory()
+        wishlist.products.append(ProductFactory())
+        wishlist.create()
+        serial_wishlist = wishlist.serialize()
+        new_wishlist = Wishlist()
+        new_wishlist.deserialize(serial_wishlist)
+        self.assertEqual(new_wishlist.name, wishlist.name)
+        self.assertEqual(new_wishlist.userid, wishlist.userid)
+
+    def test_deserialize_with_key_error(self):
+        """It should not Deserialize an wishlist with a KeyError"""
+        wishlist = Wishlist()
+        self.assertRaises(DataValidationError, wishlist.deserialize, {})
+
+    def test_deserialize_with_type_error(self):
+        """It should not Deserialize an wishlist with a TypeError"""
+        wishlist = Wishlist()
+        self.assertRaises(DataValidationError, wishlist.deserialize, [])
+
+    def test_deserialize_product_key_error(self):
+        """It should not Deserialize an product with a KeyError"""
+        product = Product()
+        self.assertRaises(DataValidationError, product.deserialize, {})
+
+    def test_deserialize_product_type_error(self):
+        """It should not Deserialize an product with a TypeError"""
+        product = Product()
+        self.assertRaises(DataValidationError, product.deserialize, [])
+
+    # Todo: Update and Delete test cases

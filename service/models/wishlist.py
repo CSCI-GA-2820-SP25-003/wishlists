@@ -37,7 +37,7 @@ class Wishlist(db.Model, PersistentBase):
             "id": self.id,
             "name": self.name,
             "userid": self.userid,
-            "products": [product.id for product in self.products],  # Only product IDs
+            "products": [product.serialize() for product in self.products],
         }
 
     def deserialize(self, data):
@@ -68,29 +68,3 @@ class Wishlist(db.Model, PersistentBase):
                 + str(error)
             ) from error
         return self
-
-    ##################################################
-    # CLASS METHODS
-    ##################################################
-
-    @classmethod
-    def all(cls):
-        """Returns all of the Wishlists in the database"""
-        logger.info("Processing all Wishlists")
-        return cls.query.all()
-
-    @classmethod
-    def find(cls, by_id):
-        """Finds a Wishlist by it's ID"""
-        logger.info("Processing lookup for id %s ...", by_id)
-        return cls.query.session.get(cls, by_id)
-
-    @classmethod
-    def find_by_name(cls, name):
-        """Returns all Wishlists with the given name
-
-        Args:
-            name (string): the name of the Wishlists you want to match
-        """
-        logger.info("Processing name query for %s ...", name)
-        return cls.query.filter(cls.name == name)
