@@ -24,34 +24,46 @@ Wishlist Products have the following fields:
 
 ## Contents
 ```
-.gitignore          - this will ignore vagrant and other metadata files
-.flaskenv           - Environment variables to configure Flask
-.gitattributes      - File to gix Windows CRLF issues
-.devcontainers/     - Folder with support for VSCode Remote Containers
-dot-env-example     - copy to .env to use environment variables
-pyproject.toml      - Poetry list of Python libraries required by your code
+.dockerignore               - exclude files from build context
+.gitignore                  - this will ignore vagrant and other metadata files
+.flaskenv                   - Environment variables to configure Flask
+.gitattributes              - File to gix Windows CRLF issues
+Dockerfile                  - instructions to generate Docker image
+LICENSE                     - Apache license
+Makefile                    - defines commands for building program
+Pipfile                     - specifies top level requirements
+Pipfile.lock                - specifies package versions
+Procfile                    - commands executed on startup
+docker-compose.yml          - enables multi-container applications
+docker-compose.debug.yml    - enables debugger
+.devcontainers/             - Folder with support for VSCode Remote Containers
+dot-env-example             - copy to .env to use environment variables
+requirements.txt            - required packages and libraries
+setup.cfg                   - configuration file
+wsgi.py                     - web server gateway interface entry point
 
-service/                   - service python package
-├── __init__.py            - package initializer
-├── config.py              - configuration parameters
-├── routes.py              - module with service routes
-├── common                 - common code package
-    ├── cli_commands.py    - Flask command to recreate all tables
-    ├── error_handlers.py  - HTTP error handling code
-    ├── log_handlers.py    - logging setup code
-    └── status.py          - HTTP status constants
-└── models                 - business models
-    ├── persistent_base.py - module with Persistent Base model
-    ├── product.py         - module with Product model
-    └── wishlist.py        - module with Wishlist model
+service/                    - service python package
+├── __init__.py             - package initializer
+├── config.py               - configuration parameters
+├── routes.py               - module with service routes
+├── common                  - common code package
+    ├── cli_commands.py     - Flask command to recreate all tables
+    ├── error_handlers.py   - HTTP error handling code
+    ├── log_handlers.py     - logging setup code
+    └── status.py           - HTTP status constants
+└── models                  - business models package
+    ├── __init__.py         - package initializer
+    ├── persistent_base.py  - module with Persistent Base model
+    ├── product.py          - module with Product model
+    └── wishlist.py         - module with Wishlist model
 
-tests/                     - test cases package
-├── __init__.py            - package initializer
-├── factories.py           - Factory for testing with fake objects
-├── test_cli_commands.py   - test suite for the CLI
-├── test_product.py        - test suite for Products
-├── test_wishlist.py       - test suite for Wishlists
-└── test_routes.py         - test suite for service routes
+tests/                      - test cases package
+├── __init__.py             - package initializer
+├── factories.py            - Factory for testing with fake objects
+├── test_cli_commands.py    - test suite for the CLI
+├── test_product.py         - test suite for Products
+├── test_wishlist.py        - test suite for Wishlists
+└── test_routes.py          - test suite for service routes
 ```
 
 ## Information about this repo
