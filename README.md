@@ -1,64 +1,50 @@
-# NYU DevOps Project Template
+# Wishlists Service
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
 
-This is a skeleton you can use to start your projects.
+This repository contains code for Wishlists for an e-commerce web site. Wishlists are comprised of Products. The services can be accessed through REST API routes.
 
-**Note:** _Feel free to overwrite this `README.md` file with the one that describes your project._
-
-## Overview
-
-This project template contains starter code for your class project. The `/service` folder contains your `models.py` file for your model and a `routes.py` file for your service. The `/tests` folder has test case starter code for testing the model and the service separately. All you need to do is add your functionality. You can use the [lab-flask-tdd](https://github.com/nyu-devops/lab-flask-tdd) for code examples to copy from.
-
-## Automatic Setup
-
-The best way to use this repo is to start your own repo using it as a git template. To do this just press the green **Use this template** button in GitHub and this will become the source for your repository.
-
-## Manual Setup
-
-You can also clone this repository and then copy and paste the starter code into your project repo folder on your local computer. Be careful not to copy over your own `README.md` file so be selective in what you copy.
-
-There are 4 hidden files that you will need to copy manually if you use the Mac Finder or Windows Explorer to copy files from this folder into your repo folder.
-
-These should be copied using a bash shell as follows:
-
-```bash
-    cp .gitignore  ../<your_repo_folder>/
-    cp .flaskenv ../<your_repo_folder>/
-    cp .gitattributes ../<your_repo_folder>/
+## Models Overview
+Wishlists have the following fields:
+```
+- id
+- name
+- userid
+- products
+```
+Wishlist Products have the following fields:
+```
+- id
+- wishlist_id
+- name
+- price
+- description
 ```
 
-## Contents
-
-The project contains the following:
-
-```text
-.gitignore          - this will ignore vagrant and other metadata files
-.flaskenv           - Environment variables to configure Flask
-.gitattributes      - File to gix Windows CRLF issues
-.devcontainers/     - Folder with support for VSCode Remote Containers
-dot-env-example     - copy to .env to use environment variables
-pyproject.toml      - Poetry list of Python libraries required by your code
-
-service/                   - service python package
-├── __init__.py            - package initializer
-├── config.py              - configuration parameters
-├── models.py              - module with business models
-├── routes.py              - module with service routes
-└── common                 - common code package
-    ├── cli_commands.py    - Flask command to recreate all tables
-    ├── error_handlers.py  - HTTP error handling code
-    ├── log_handlers.py    - logging setup code
-    └── status.py          - HTTP status constants
-
-tests/                     - test cases package
-├── __init__.py            - package initializer
-├── factories.py           - Factory for testing with fake objects
-├── test_cli_commands.py   - test suite for the CLI
-├── test_models.py         - test suite for business models
-└── test_routes.py         - test suite for service routes
+## Information about this repo
 ```
+Endpoint          Methods  Rule
+----------------  -------  -----------------------------------------------------
+index             GET      /
+
+list_wishlists    GET      /wishlists
+create_wishlists  POST     /wishlists
+get_wishlists     GET      /wishlists/<wishlist_id>
+update_wishlists  PUT      /wishlists/<wishlist_id>
+delete_wishlists  DELETE   /wishlists/<wishlist_id>
+
+list_products     GET      /wishlists/<int:wishlist_id>/products
+create_products   POST     /wishlists/<wishlist_id>/products
+get_products      GET      /wishlists/<wishlist_id>/products/<product_id>
+update_products   PUT      /wishlists/<wishlist_id>/products/<product_id>
+delete_products   DELETE   /wishlists/<wishlist_id>/products/<product_id>
+```
+
+## Running and Testing
+Calling `make run` will run the service on localhost:8080.
+
+The service can be tested using `make test`.
 
 ## License
 
