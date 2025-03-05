@@ -28,13 +28,27 @@ from service.common import status  # HTTP Status Codes
 
 
 ######################################################################
+# GET HEALTH CHECK
+######################################################################
+@app.route("/health")
+def health_check():
+    """Let them know our heart is still beating"""
+    return jsonify(status=200, message="Healthy"), status.HTTP_200_OK
+
+######################################################################
 # GET INDEX
 ######################################################################
+
+
 @app.route("/")
 def index():
     """Root URL response"""
     return (
-        "Reminder: return some useful information in json format about the service here",
+        jsonify(
+            name="Wishlist REST API Service",
+            version="1.0",
+            paths=url_for("list_wishlists", _external=True),
+        ),
         status.HTTP_200_OK,
     )
 
@@ -63,7 +77,7 @@ def create_wishlists():
 
     # Create a message to return
     message = wishlist.serialize()
-    # Todo: Uncomment this code when get_wishlists is implemented
+    # Completed
     location_url = url_for("get_wishlists", wishlist_id=wishlist.id, _external=True)
 
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
@@ -168,6 +182,27 @@ def update_wishlists(wishlist_id):
 # ---------------------------------------------------------------------
 
 ######################################################################
+# LIST PRODUCTS
+######################################################################
+@app.route("/wishlists/<int:wishlist_id>/products", methods=["GET"])
+def list_products(wishlist_id):
+    """Returns all of the Products for an Wishlist"""
+    app.logger.info("Request for all Products for Wishlist with id: %s", wishlist_id)
+
+    # See if the wishlist exists and abort if it doesn't
+    wishlist = Wishlist.find(wishlist_id)
+    if not wishlist:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Wishlist with id '{wishlist_id}' could not be found.",
+        )
+
+    # Get the products for the wishlist
+    results = [product.serialize() for product in wishlist.products]
+
+    return jsonify(results), status.HTTP_200_OK
+
+######################################################################
 # ADD A PRODUCT TO A WISHLIST
 ######################################################################
 
@@ -242,7 +277,7 @@ def update_products(wishlist_id, product_id):
 
 
 ######################################################################
-# RETRIEVE AN ADDRESS FROM ACCOUNT
+# RETRIEVE A PRODUCT FROM WISHLIST
 ######################################################################
 @app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>", methods=["GET"])
 def get_products(wishlist_id, product_id):
@@ -264,6 +299,48 @@ def get_products(wishlist_id, product_id):
         )
 
     return jsonify(product.serialize()), status.HTTP_200_OK
+
+######################################################################
+# DELETE A PRODUCT FROM WISHLIST
+######################################################################
+@app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>", methods=["DELETE"])
+def delete_products(wishlist_id, product_id):
+    """
+    Delete a Product from a Wishlist
+
+    This endpoint will remove a product entirely from the database.
+    """
+    app.logger.info("Request to delete Product %s for Wishlist id: %s", product_id, wishlist_id)
+
+    # Retrieve the wishlist
+    wishlist = Wishlist.find(wishlist_id)
+    if not wishlist:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Wishlist with id '{wishlist_id}' could not be found.",
+        )
+
+    # Retrieve the product
+    product = Product.find(product_id)
+    if not product:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Product with id '{product_id}' could not be found.",
+        )
+
+    # Ensure the product is part of the wishlist
+    if product not in wishlist.products:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Product with id '{product_id}' is not in Wishlist '{wishlist_id}'.",
+        )
+
+    # Delete the product from the database
+    product.delete()  # Assumes that your Product model has a delete() method that handles deletion
+    return (
+        jsonify({"message": f"Product {product_id} deleted from Wishlist {wishlist_id}"}),
+        status.HTTP_200_OK,
+    )
 
 
 ######################################################################
