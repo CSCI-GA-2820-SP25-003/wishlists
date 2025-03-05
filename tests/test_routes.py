@@ -445,5 +445,151 @@ class TestWishlistService(TestCase):
 
     def test_delete_wishlist_not_found(self):
         """It should not Delete a Wishlist that is not found"""
+        # Try to delete a wishlist that doesn't exist
         resp = self.client.delete(f"{BASE_URL}/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_wishlist_with_no_products(self):
+        """It should Delete a Wishlist that has no products"""
+        # Create a wishlist with no products
+        wishlist = self._create_wishlists(1)[0]
+
+        # Delete the wishlist
+        resp = self.client.delete(f"{BASE_URL}/{wishlist.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Verify the returned message
+        data = resp.get_json()
+        self.assertEqual(data["message"], f"Wishlist {wishlist.id} deleted")
+
+        # Verify the wishlist was deleted
+        resp = self.client.get(f"{BASE_URL}/{wishlist.id}")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_bad_media_type_on_create_product(self):
+        """It should not create a product with unsupported media type"""
+        wishlist = self._create_wishlists(1)[0]
+        product = ProductFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{wishlist.id}/products",
+            json=product.serialize(),
+            content_type="text/plain",  # Wrong media type
+        )
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_invalid_product_data(self):
+        """It should not create a product with invalid data"""
+        wishlist = self._create_wishlists(1)[0]
+        # Missing required fields
+        resp = self.client.post(
+            f"{BASE_URL}/{wishlist.id}/products",
+            json={"description": "Missing required data"},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_product_not_found(self):
+        """It should return 404 when getting a product that doesn't exist"""
+        wishlist = self._create_wishlists(1)[0]
+        resp = self.client.get(f"{BASE_URL}/{wishlist.id}/products/0")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_product_not_found(self):
+        """It should return 404 when deleting a product that doesn't exist"""
+        wishlist = self._create_wishlists(1)[0]
+        resp = self.client.delete(f"{BASE_URL}/{wishlist.id}/products/0")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_method_not_allowed_on_products(self):
+        """It should return 405 when using an unsupported method on products collection"""
+        wishlist = self._create_wishlists(1)[0]
+        resp = self.client.put(f"{BASE_URL}/{wishlist.id}/products")
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_get_products_from_nonexistent_wishlist(self):
+        """It should return 404 when getting products from a non-existent wishlist"""
+        resp = self.client.get(f"{BASE_URL}/0/products")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_product_for_nonexistent_wishlist(self):
+        """It should return 404 when creating a product for a non-existent wishlist"""
+        product = ProductFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/0/products",
+            json=product.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_product_invalid_json(self):
+        """It should return 400 when updating a product with invalid JSON"""
+        wishlist = self._create_wishlists(1)[0]
+        product = ProductFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{wishlist.id}/products",
+            json=product.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        product_id = resp.get_json()["id"]
+
+        # Try to update with invalid data
+        resp = self.client.put(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            json={"price": "not a number"},  # Invalid price format
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_query_wishlist_by_nonexistent_name(self):
+        """It should return empty list when querying by a name that doesn't exist"""
+        resp = self.client.get(BASE_URL, query_string="name=NonExistentName")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 0)
+
+    def test_update_wishlist_with_missing_data(self):
+        """It should not update a wishlist with missing data"""
+        wishlist = self._create_wishlists(1)[0]
+        # Missing userid which is required
+        resp = self.client.put(
+            f"{BASE_URL}/{wishlist.id}",
+            json={"name": "Just a name"},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_query_wishlists_by_userid(self):
+        """It should Query Wishlists by userid"""
+        wishlists = self._create_wishlists(3)
+        # Add a different userid to the second wishlist
+        test_userid = "special_user"
+        wishlists[1].userid = test_userid
+        wishlists[1].update()
+
+        # Query for wishlists with that userid
+        resp = self.client.get(BASE_URL, query_string=f"userid={test_userid}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["userid"], test_userid)
+
+    def test_method_not_allowed_on_product(self):
+        """It should not allow an illegal method call on a product"""
+        wishlist = self._create_wishlists(1)[0]
+        product = ProductFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{wishlist.id}/products",
+            json=product.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        product_id = resp.get_json()["id"]
+
+        # Try a method that's not allowed
+        resp = self.client.patch(
+            f"{BASE_URL}/{wishlist.id}/products/{product_id}",
+            json={"name": "Updated Name"},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)

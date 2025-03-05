@@ -25,6 +25,8 @@ from unittest import TestCase
 from tests.factories import ProductFactory, WishlistFactory
 from wsgi import app
 from service.models import Wishlist, Product, db
+from unittest.mock import patch
+from service.models import DataValidationError
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -170,3 +172,27 @@ class TestProduct(TestCase):
         updated_wishlist = Wishlist.find(wishlist.id)
         self.assertEqual(len(updated_wishlist.products), 1)
         self.assertEqual(updated_wishlist.products[0].id, product2.id)
+
+    def test_delete_product_error_handling(self):
+        """It should handle errors during product deletion"""
+        # Create a Wishlist and a product
+        wishlist = WishlistFactory()
+        product = ProductFactory(wishlist=wishlist)
+        wishlist.products.append(product)
+        wishlist.create()
+
+        # Verify the product exists
+        wishlist_db = Wishlist.find(wishlist.id)
+        self.assertEqual(len(wishlist_db.products), 1)
+        product_id = wishlist_db.products[0].id
+
+        # Mock db.session.commit to raise an exception
+        with patch("service.models.persistent_base.db.session.commit") as mock_commit:
+            mock_commit.side_effect = Exception("Database error")
+            # Attempt to delete should raise DataValidationError
+            with self.assertRaises(DataValidationError):
+                product.delete()
+
+        # Verify the product still exists (delete failed)
+        product_exists = db.session.get(Product, product_id)
+        self.assertIsNotNone(product_exists)

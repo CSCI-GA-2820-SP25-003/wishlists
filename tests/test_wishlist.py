@@ -264,4 +264,24 @@ class TestWishlist(TestCase):
         wishlist.userid = "test_user"
         self.assertRaises(DataValidationError, wishlist.create)
 
+    def test_delete_wishlist_error_handling(self):
+        """It should handle errors during wishlist deletion"""
+        # Create a wishlist to delete
+        wishlist = Wishlist()
+        wishlist.name = "Test Delete Error"
+        wishlist.userid = "test_delete_err"  # Shortened to fit within 16 chars
+        wishlist.create()
+        wishlist_id = wishlist.id
+
+        # Verify the wishlist exists
+        found_wishlist = Wishlist.find(wishlist_id)
+        self.assertIsNotNone(found_wishlist)
+
+        # Mock db.session.delete to raise an exception
+        with patch("service.models.persistent_base.db.session.delete") as mock_delete:
+            mock_delete.side_effect = Exception("Database error")
+            # Attempt to delete should raise DataValidationError
+            with self.assertRaises(DataValidationError):
+                wishlist.delete()
+
     # Todo: Update and Delete test cases
