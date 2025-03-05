@@ -6,15 +6,19 @@
 This repository contains code for Wishlists for an e-commerce web site. Wishlists are comprised of Products. The services can be accessed through REST API routes.
 
 ## Models Overview
+
 Wishlists have the following fields:
-```
+
+```text
 - id
 - name
 - userid
 - products
 ```
+
 Wishlist Products have the following fields:
-```
+
+```text
 - id
 - wishlist_id
 - name
@@ -23,7 +27,8 @@ Wishlist Products have the following fields:
 ```
 
 ## Contents
-```
+
+```text
 .dockerignore               - exclude files from build context
 .gitignore                  - this will ignore vagrant and other metadata files
 .flaskenv                   - Environment variables to configure Flask
@@ -67,7 +72,8 @@ tests/                      - test cases package
 ```
 
 ## Information about this repo
-```
+
+```text
 Endpoint          Methods  Rule
 ----------------  -------  -----------------------------------------------------
 index             GET      /
@@ -86,6 +92,7 @@ delete_products   DELETE   /wishlists/<wishlist_id>/products/<product_id>
 ```
 
 ## Running and Testing
+
 Calling `make run` will run the service on localhost:8080.
 
 The service can be tested using `make test`.

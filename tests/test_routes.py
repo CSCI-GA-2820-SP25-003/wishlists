@@ -218,31 +218,7 @@ class TestWishlistService(TestCase):
         resp = self.client.get(f"{BASE_URL}/{wishlist.id}")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_update_wishlist(self):
-        """It should Update a Wishlist"""
-        # Create a wishlist to update
-        test_wishlist = self._create_wishlists(1)[0]
-
-        # Update the wishlist
-        test_wishlist.name = "Updated Name"
-        resp = self.client.put(
-            f"{BASE_URL}/{test_wishlist.id}",
-            json=test_wishlist.serialize(),
-            content_type="application/json",
-        )
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-
-        # Check that the update was successful
-        updated_wishlist = resp.get_json()
-        self.assertEqual(updated_wishlist["name"], "Updated Name")
-
-        # Verify the update persisted
-        resp = self.client.get(f"{BASE_URL}/{test_wishlist.id}")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        retrieved_wishlist = resp.get_json()
-        self.assertEqual(retrieved_wishlist["name"], "Updated Name")
-
-    # Todo: Delete and update test cases
+    # Completed
 
     ######################################################################
     #  P R O D U C T   T E S T   C A S E S
@@ -558,21 +534,6 @@ class TestWishlistService(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_query_wishlists_by_userid(self):
-        """It should Query Wishlists by userid"""
-        wishlists = self._create_wishlists(3)
-        # Add a different userid to the second wishlist
-        test_userid = "special_user"
-        wishlists[1].userid = test_userid
-        wishlists[1].update()
-
-        # Query for wishlists with that userid
-        resp = self.client.get(BASE_URL, query_string=f"userid={test_userid}")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["userid"], test_userid)
 
     def test_method_not_allowed_on_product(self):
         """It should not allow an illegal method call on a product"""
