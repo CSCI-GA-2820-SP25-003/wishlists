@@ -197,12 +197,11 @@ class TestWishlist(TestCase):
         wishlist_id = wishlist.id
 
         # Create a product directly through SQLAlchemy
-        product = Product(
-            wishlist_id=wishlist_id,
-            name="Test Product",
-            price=10.99,
-            description="Test Description",
-        )
+        product = Product()
+        product.wishlist_id = wishlist_id
+        product.name = "Test Product"
+        product.price = 10.99
+        product.description = "Test Description"
         db.session.add(product)
         db.session.commit()
         product_id = product.id
