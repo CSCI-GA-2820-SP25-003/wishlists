@@ -41,6 +41,7 @@ jobs:
           # Install PostgreSQL client for development
           apt-get update && apt-get install -y libpq-dev gcc
           pipenv install --system --dev
+          pip install psycopg2-binary 
       - name: Linting
         run: |
           # stop the build if there are Python syntax errors or undefined names
