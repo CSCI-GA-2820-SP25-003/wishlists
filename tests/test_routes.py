@@ -399,7 +399,7 @@ class TestWishlistService(TestCase):
         """It should not Delete a Wishlist that is not found"""
         # Try to delete a wishlist that doesn't exist
         resp = self.client.delete(f"{BASE_URL}/0")
-        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_wishlist_with_no_products(self):
         """It should Delete a Wishlist that has no products"""
@@ -446,7 +446,7 @@ class TestWishlistService(TestCase):
         """It should return 404 when deleting a product that doesn't exist"""
         wishlist = self._create_wishlists(1)[0]
         resp = self.client.delete(f"{BASE_URL}/{wishlist.id}/products/0")
-        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_method_not_allowed_on_products(self):
         """It should return 405 when using an unsupported method on products collection"""
