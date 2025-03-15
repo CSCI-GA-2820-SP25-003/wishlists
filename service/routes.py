@@ -309,34 +309,25 @@ def delete_products(wishlist_id, product_id):
     # Retrieve the wishlist
     wishlist = Wishlist.find(wishlist_id)
     if not wishlist:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Wishlist with id '{wishlist_id}' could not be found.",
-        )
+        # If wishlist doesn't exist, consider the operation successful
+        # since the product can't exist in a non-existent wishlist
+        return "", status.HTTP_204_NO_CONTENT
 
     # Retrieve the product
     product = Product.find(product_id)
     if not product:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Product with id '{product_id}' could not be found.",
-        )
+        # If product doesn't exist, consider deletion successful
+        return "", status.HTTP_204_NO_CONTENT
 
     # Ensure the product is part of the wishlist
     if product not in wishlist.products:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Product with id '{product_id}' is not in Wishlist '{wishlist_id}'.",
-        )
+        # If product is not in wishlist, consider deletion successful
+        return "", status.HTTP_204_NO_CONTENT
 
     # Delete the product from the database
-    product.delete()  # Assumes that your Product model has a delete() method that handles deletion
-    return (
-        jsonify(
-            {"message": f"Product {product_id} deleted from Wishlist {wishlist_id}"}
-        ),
-        status.HTTP_204_NO_CONTENT,
-    )
+    product.delete()
+
+    return "", status.HTTP_204_NO_CONTENT
 
 
 ######################################################################
@@ -353,16 +344,12 @@ def delete_wishlists(wishlist_id):
 
     # Retrieve the wishlist
     wishlist = Wishlist.find(wishlist_id)
-    if not wishlist:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Wishlist with id '{wishlist_id}' could not be found.",
-        )
+    if wishlist:
+        # Delete the wishlist if it exists
+        wishlist.delete()
 
-    # Delete the wishlist
-    wishlist.delete()
-
-    return jsonify({"message": f"Wishlist {wishlist_id} deleted"}), status.HTTP_204_NO_CONTENT
+    # Return 204 regardless of whether the wishlist existed
+    return "", status.HTTP_204_NO_CONTENT
 
 
 # ######################################################################
