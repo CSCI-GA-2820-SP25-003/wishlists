@@ -526,3 +526,86 @@ class TestWishlistService(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_get_wishlists_default_pagination(self):
+        """It should get the first 10 wishlists by default"""
+        # Create more than 10 wishlists
+        wishlists = self._create_wishlists(15)
+
+        resp = self.client.get(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        self.assertEqual(len(data), 10)  # Default limit is 10
+
+        # Verify the first few wishlists are returned
+        for i in range(10):
+            self.assertEqual(data[i]['name'], wishlists[i].name)
+
+    def test_get_wishlists_custom_pagination(self):
+        """It should get the specified page and limit of wishlists"""
+        # Create 15 wishlists
+        wishlists = self._create_wishlists(15)
+
+        # Get second page with 5 items per page
+        resp = self.client.get(BASE_URL, query_string="page=2&limit=5")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)  # 5 items per page
+
+        # Verify the correct 5 wishlists are returned (items 6-10)
+        for i in range(5):
+            self.assertEqual(data[i]['name'], wishlists[i + 5].name)
+
+    def test_get_wishlists_last_page(self):
+        """It should get the last page of wishlists"""
+        # Create 15 wishlists
+        wishlists = self._create_wishlists(15)
+
+        # Get last page with 5 items per page
+        resp = self.client.get(BASE_URL, query_string="page=3&limit=5")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)  # 5 items on last page
+
+        # Verify the correct 5 wishlists are returned (last 5 items)
+        for i in range(5):
+            self.assertEqual(data[i]['name'], wishlists[i + 10].name)
+
+    def test_get_wishlists_beyond_total_pages(self):
+        """It should return an empty list when page is beyond total pages"""
+        # Create fewer than 10 wishlists
+        wishlists = self._create_wishlists(7)
+        self.assertEqual(len(wishlists), 7)  # Verify number of created wishlists
+        # Request a page that doesn't exist
+        resp = self.client.get(BASE_URL, query_string="page=3&limit=5")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        self.assertEqual(len(data), 0)  # Empty list for non-existent page
+
+    def test_get_wishlists_invalid_pagination(self):
+        """It should handle invalid pagination parameters gracefully"""
+        # Create some wishlists
+        wishlists = self._create_wishlists(10)
+        self.assertEqual(len(wishlists), 10)  # Verify number of created wishlists
+
+        # Test negative page number
+        resp = self.client.get(BASE_URL, query_string="page=-1&limit=5")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)  # Should default to first page
+
+        # Test zero page number
+        resp = self.client.get(BASE_URL, query_string="page=0&limit=5")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)  # Should default to first page
+
+        # Test extremely large page number
+        resp = self.client.get(BASE_URL, query_string="page=1000&limit=5")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 0)  # Should return empty list
