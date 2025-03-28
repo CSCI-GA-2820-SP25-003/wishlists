@@ -116,29 +116,45 @@ def get_wishlists(wishlist_id):
 
 @app.route("/wishlists", methods=["GET"])
 def list_wishlists():
-    """Returns all of the Wishlists"""
+    """
+    Returns paginated Wishlists with optional name filtering
+
+    Query Parameters:
+    - name: Filter wishlists by name
+    - page: Page number for pagination (default: 1)
+    - limit: Number of items per page (default: 10)
+    """
     app.logger.info("Request for Wishlists list")
-    wishlists = []
 
-    # Process the query string if any
+    # Extract filter and pagination parameters
     name = request.args.get("name")
-    userid = request.args.get("userid")
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+
+    # Validate and normalize page and limit
+    page = max(1, page)
+    limit = max(1, limit)
+
+    # Base query with name filtering
     if name:
-        wishlists = Wishlist.find_by_name(name)
-    elif userid:
-        wishlists = Wishlist.find_by_userid(userid)
+        query = Wishlist.query.filter(Wishlist.name == name)
     else:
-        wishlists = Wishlist.all()
+        query = Wishlist.query
 
-    # Return as an array of dictionaries
-    results = [wishlist.serialize() for wishlist in wishlists]
+    # Use SQLAlchemy's pagination method
+    paginated_query = query.paginate(page=page, per_page=limit, error_out=False)
 
+    # Serialize results
+    results = [wishlist.serialize() for wishlist in paginated_query.items]
+
+    # Return response with paginated results
     return jsonify(results), status.HTTP_200_OK
-
 
 ######################################################################
 # UPDATE AN EXISTING WISHLIST
 ######################################################################
+
+
 @app.route("/wishlists/<int:wishlist_id>", methods=["PUT"])
 def update_wishlists(wishlist_id):
     """
@@ -350,35 +366,6 @@ def delete_wishlists(wishlist_id):
 
     # Return 204 regardless of whether the wishlist existed
     return "", status.HTTP_204_NO_CONTENT
-
-
-# ######################################################################
-# # UPDATE A WISHLIST
-# ######################################################################
-# @app.route("/wishlists/<int:wishlist_id>", methods=["PUT"])
-# def update_wishlists(wishlist_id):
-#     """
-#     Update a Wishlist
-
-#     This endpoint will update a Wishlist based the body that is posted
-#     """
-#     app.logger.info("Request to update wishlist with id: %s", wishlist_id)
-#     check_content_type("application/json")
-
-#     # Retrieve the wishlist
-#     wishlist = Wishlist.find(wishlist_id)
-#     if not wishlist:
-#         abort(
-#             status.HTTP_404_NOT_FOUND,
-#             f"Wishlist with id '{wishlist_id}' could not be found.",
-#         )
-
-#     # Update the wishlist
-#     wishlist.deserialize(request.get_json())
-#     wishlist.id = wishlist_id
-#     wishlist.update()
-
-#     return jsonify(wishlist.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
