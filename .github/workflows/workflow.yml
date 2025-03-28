@@ -3,60 +3,71 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+    - 'README.md'
+    - '.vscode/**'
+
   pull_request:
     branches:
       - master
+    paths-ignore:
+    - 'README.md'
+    - '.vscode/**'
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    # use a known build environment
     container: python:3.11-slim
+
     # Required services    
     services:
       # Label used to access the service container
       postgres:
-        # Docker Hub image
-        image: postgres:14
-        # Environment variables for PostgreSQL
+        image: postgres:15-alpine
         env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: testdb
+          POSTGRES_PASSWORD: pgs3cr3t
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        # Map port 5432 on the container to a port on the host
-        ports:
-          - 5432:5432
+
     # Steps for the build
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-            
+              
       - name: Install Python package dependencies
         run: |
           python -m pip install -U pip pipenv
-          # Install PostgreSQL client for development
-          apt-get update && apt-get install -y libpq-dev gcc
           pipenv install --system --dev
-          pip install psycopg2-binary 
-      - name: Linting
+
+      - name: Run Code Quality Checks
         run: |
           # stop the build if there are Python syntax errors or undefined names
           flake8 service tests --count --select=E9,F63,F7,F82 --show-source --statistics
-          # test for complexity. The GitHub editor is 127 chars wide
+          # check for complexity. The GitHub editor is 127 chars wide
           flake8 service tests --count --max-complexity=10 --max-line-length=127 --statistics
-          # Run pylint to catch other PEP8 errors
+          # Run pylint on the service
           pylint service tests --max-line-length=127
-      - name: Run unit tests with PyTest
-        run: pytest --pspec --cov=service --cov-report=xml --cov-fail-under=95
+
+      - name: Run unit tests with pytest
+        run: |
+          pytest --pspec --cov=service --cov-fail-under=95 --disable-warnings
         env:
-          DATABASE_URI: "postgresql://postgres:postgres@postgres:5432/testdb"
-      # Create a CODECOV_TOKEN in Settings->Secrets and variables->Actions
-      # and then uncomment the CodeCov action during hands-on lab
+          FLASK_APP: "wsgi:app"
+          DATABASE_URI: "postgresql+psycopg://postgres:pgs3cr3t@postgres:5432/postgres"
+      
+      - name: Install packages for Codcov to work
+        run: apt-get update && apt-get install -y git curl gpg
+        
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3.1.4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          slug: CSCI-GA-2820-SP25-003/wishlists
