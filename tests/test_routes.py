@@ -20,12 +20,14 @@ TestWishlist API Service Test Suite
 
 # pylint: disable=duplicate-code
 import os
+import json
 import logging
 from decimal import Decimal
 from unittest import TestCase
+from unittest.mock import patch
 from wsgi import app
 from service.common import status
-from service.models import db, Wishlist
+from service.models import db, Wishlist, DataValidationError
 from .factories import WishlistFactory, ProductFactory
 
 BASE_URL = "/wishlists"
@@ -62,6 +64,9 @@ class TestWishlistService(TestCase):
         self.client = app.test_client()
         db.session.query(Wishlist).delete()  # clean up the last tests
         db.session.commit()
+        self.headers = {
+            "Content-Type": "application/json"
+        }
 
     def tearDown(self):
         """This runs after each test"""
@@ -86,6 +91,26 @@ class TestWishlistService(TestCase):
             wishlist.id = new_wishlist["id"]
             wishlists.append(wishlist)
         return wishlists
+
+    def _create_products(self, wishlist_id, count):
+        """Factory method to create products in bulk for a specific wishlist"""
+        products = []
+        for _ in range(count):
+            product = ProductFactory()
+            resp = self.client.post(
+                f"{BASE_URL}/{wishlist_id}/products",
+                json=product.serialize(),
+                content_type="application/json"
+            )
+            self.assertEqual(
+                resp.status_code,
+                status.HTTP_201_CREATED,
+                "Could not create test Product",
+            )
+            new_product = resp.get_json()
+            product.id = new_product["id"]
+            products.append(product)
+        return products
 
     ######################################################################
     #  W I S H L I S T   T E S T   C A S E S
@@ -609,3 +634,228 @@ class TestWishlistService(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), 0)  # Should return empty list
+
+    def test_update_note_for_non_existing_product(self):
+        """It should handle the case when updating a note for a non-existing product."""
+        wishlist = WishlistFactory()
+        wishlist.create()
+
+        # Attempt to update the note for a non-existing product (ID 999)
+        response = self.client.patch(
+            f"/wishlists/{wishlist.id}/products/999/note",
+            json={"note": "This is a note."}
+        )
+
+        self.assertEqual(response.status_code, 404)
+        data = response.get_json()
+        self.assertIn("Product with id '999' was not found.", data["message"])
+
+    def test_update_note_for_product_not_in_wishlist(self):
+        """It should handle updating a product note when the product does not belong to the given wishlist."""
+        # Create two wishlists
+        wishlist1 = self._create_wishlists(1)[0]
+        wishlist2 = self._create_wishlists(1)[0]
+
+        # Create a product in wishlist1
+        product = ProductFactory()
+        resp = self.client.post(
+            f"{BASE_URL}/{wishlist1.id}/products",
+            json=product.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        product_data = resp.get_json()
+        product_id = product_data["id"]
+
+        # Attempt to update the product's note in wishlist2
+        response = self.client.patch(
+            f"{BASE_URL}/{wishlist2.id}/products/{product_id}/note",
+            json={"note": "This is a note."},
+            content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.get_json()
+        self.assertIn("Product does not belong", data["message"])
+
+    def test_serialize_and_deserialize_product_with_note(self):
+        """It should serialize and deserialize a product with a note field."""
+        # Create a Product and add a note
+        product = ProductFactory(note="Special product note")
+        serialized_product = product.serialize()
+
+        # Check if the serialized note is correct
+        self.assertEqual(serialized_product["note"], "Special product note")
+
+        # Deserialize the serialized product
+        new_product = ProductFactory()
+        new_product.deserialize(serialized_product)
+
+        # Verify that the deserialized note is correct
+        self.assertEqual(new_product.note, "Special product note")
+
+    def test_create_product_without_note(self):
+        """It should create a product without a note and handle it properly."""
+        # Create a Wishlist
+        wishlist = WishlistFactory()
+        wishlist.create()
+
+        # Create a Product without a note
+        product_data = {
+            "wishlist_id": wishlist.id,
+            "name": "Smartphone",
+            "price": 799.99,
+            "description": "Latest model",
+        }
+        response = self.client.post(
+            f"/wishlists/{wishlist.id}/products",
+            json=product_data
+        )
+
+        self.assertEqual(response.status_code, 201)
+        product = response.get_json()
+        self.assertIsNone(product["note"])
+
+    def test_update_product_note_success(self):
+        """Test successful note update of a product"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Create a product
+        product = self._create_products(wishlist.id, 1)[0]
+        # Update the note
+        update_data = {
+            "note": "Updated note text"
+        }
+
+        resp = self.client.patch(
+            f"/wishlists/{wishlist.id}/products/{product.id}/note",
+            json=update_data,
+            headers=self.headers
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        updated_product = json.loads(resp.data)
+        self.assertEqual(updated_product["note"], "Updated note text")
+
+    def test_update_product_note_missing_note(self):
+        """Test updating a product note with missing 'note' field"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Create a product
+        product = self._create_products(wishlist.id, 1)[0]
+
+        # Try to update without a note field
+        update_data = {
+            "something_else": "This is not a note"
+        }
+
+        resp = self.client.patch(
+            f"/wishlists/{wishlist.id}/products/{product.id}/note",
+            json=update_data,
+            headers=self.headers
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("must contain a 'note' field", resp.get_data(as_text=True))
+
+    def test_update_product_note_product_not_found(self):
+        """Test updating note for a non-existent product"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Try to update a non-existent product
+        non_existent_product_id = 99999
+        update_data = {
+            "note": "This won't work"
+        }
+
+        resp = self.client.patch(
+            f"/wishlists/{wishlist}/products/{non_existent_product_id}/note",
+            json=update_data,
+            headers=self.headers
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_product_note_wrong_wishlist(self):
+        """Test updating note for a product in the wrong wishlist"""
+        # Create two wishlists
+        wishlist1 = self._create_wishlists(1)[0]
+        wishlist2 = self._create_wishlists(1)[0]
+
+        # Create a product in wishlist1
+        product = self._create_products(wishlist1.id, 1)[0]
+
+        # Try to update the product note using wishlist2's ID
+        update_data = {
+            "note": "This should fail"
+        }
+
+        resp = self.client.patch(
+            f"/wishlists/{wishlist2.id}/products/{product.id}/note",
+            json=update_data,
+            headers=self.headers
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("does not belong to the specified wishlist", resp.get_data(as_text=True))
+
+    def test_delete_non_existent_product(self):
+        """It should handle deleting a non-existent product gracefully."""
+        wishlist = WishlistFactory()
+        resp = self.client.post(BASE_URL, json=wishlist.serialize())
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        wishlist_data = resp.get_json()
+        wishlist_id = wishlist_data["id"]
+
+        # Attempt to delete a product that doesn't exist
+        response = self.client.delete(
+            f"{BASE_URL}/{wishlist_id}/products/999"
+        )
+
+        # Should return 204 with no content
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Don't try to access response.get_json() as it will be None
+
+    def test_delete_product_database_integrity(self):
+        """It should handle deleting a product while ensuring database integrity."""
+        # Create a Wishlist and a Product associated with it
+        wishlist = WishlistFactory()
+        product = ProductFactory(wishlist=wishlist)
+        wishlist.products.append(product)
+        wishlist.create()  # Save the wishlist (and its products) to the database
+
+        # Mock db.session.commit to raise an exception
+        with patch("service.models.persistent_base.db.session.commit") as mock_commit:
+            mock_commit.side_effect = Exception("Database error")
+
+            # Attempt to delete should raise DataValidationError
+            with self.assertRaises(DataValidationError):
+                product.delete()
+
+    def test_check_content_type_missing(self):
+        """Test missing Content-Type header (lines 414-415)"""
+        # Create a request without a Content-Type header
+        resp = self.client.post(  # Use client instead of app
+            "/wishlists",
+            data=json.dumps({"name": "Test Wishlist", "user_id": "user123"})
+            # Deliberately not including headers
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        self.assertIn("Content-Type must be", resp.get_data(as_text=True))
+
+    def test_check_content_type_wrong(self):
+        """Test wrong Content-Type header (line 415)"""
+        headers = {"Content-Type": "text/plain"}  # Wrong content type
+
+        resp = self.client.post(  # Use client instead of app
+            "/wishlists",
+            headers=headers,
+            data=json.dumps({"name": "Test Wishlist", "user_id": "user123"})
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        self.assertIn("Content-Type must be", resp.get_data(as_text=True))

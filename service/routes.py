@@ -369,6 +369,41 @@ def delete_wishlists(wishlist_id):
 
 
 ######################################################################
+# UPDATE A NOTE OF A PRODUCT
+######################################################################
+
+
+@app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>/note", methods=["PATCH"])
+def update_product_note(wishlist_id, product_id):
+    """
+    Update the note of a product in a wishlist
+
+    This endpoint updates only the 'note' field of a product.
+    """
+    app.logger.info("Request to update note for Product %s in Wishlist %s", product_id, wishlist_id)
+    check_content_type("application/json")
+
+    # Retrieve the product
+    product = Product.find(product_id)
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
+
+    # Check if the product belongs to the given wishlist
+    if product.wishlist_id != wishlist_id:
+        abort(status.HTTP_400_BAD_REQUEST, "Product does not belong to the specified wishlist.")
+
+    # Update the note field
+    data = request.get_json()
+    if "note" not in data:
+        abort(status.HTTP_400_BAD_REQUEST, "Request must contain a 'note' field.")
+
+    product.note = data["note"]
+    product.update()
+
+    return jsonify(product.serialize()), status.HTTP_200_OK
+
+
+######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
 
