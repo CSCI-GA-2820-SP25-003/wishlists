@@ -101,32 +101,34 @@ class TestProduct(TestCase):
         self.assertEqual(new_wishlist.products[1].name, product2.name)
 
     def test_update_wishlist_product(self):
-        """It should Update a wishlists product"""
+        """It should Update a wishlist's product"""
         wishlists = Wishlist.all()
         self.assertEqual(wishlists, [])
 
+        # Create a Wishlist and a Product
         wishlist = WishlistFactory()
         product = ProductFactory(wishlist=wishlist)
-        wishlist.create()
-        # Assert that it was assigned an id and shows up in the database
+        wishlist.create()  # Save the wishlist (and its products) to the database
+
+        # Assert that the wishlist was assigned an ID and exists in the database
         self.assertIsNotNone(wishlist.id)
         wishlists = Wishlist.all()
         self.assertEqual(len(wishlists), 1)
 
-        # Fetch it back
+        # Fetch the wishlist from the database and get the product
         wishlist = Wishlist.find(wishlist.id)
         old_product = wishlist.products[0]
-        print("%r", old_product)
+
+        # Assert that the description is correct
         self.assertEqual(old_product.description, product.description)
-        # Change the description
 
+        # Update the product's description
         old_product.description = "XX"
-        wishlist.update()
-
-        # Fetch it back again
-        wishlist = Wishlist.find(wishlist.id)
-        product = wishlist.products[0]
-        self.assertEqual(product.description, "XX")
+        # Commit the change to the database
+        db.session.commit()  # This saves the change
+        # Fetch the product back and check the updated description
+        updated_product = Product.find(old_product.id)
+        self.assertEqual(updated_product.description, "XX")
 
     def test_serialize_an_product(self):
         """It should serialize a Product"""
