@@ -402,6 +402,39 @@ def update_product_note(wishlist_id, product_id):
 
     return jsonify(product.serialize()), status.HTTP_200_OK
 
+######################################################################
+# UPDATE STATUS OF PRODUCT
+######################################################################
+
+
+@app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>/gift", methods=["PATCH"])
+def mark_product_as_gift(wishlist_id, product_id):
+    """
+    Mark or unmark a product in a wishlist as a gift.
+
+    This endpoint updates the 'gift' status of a product.
+    """
+    app.logger.info("Request to update gift status for Product %s in Wishlist %s", product_id, wishlist_id)
+    check_content_type("application/json")
+
+    # First, find the product by ID regardless of wishlist
+    product = Product.find(product_id)
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
+
+    # Then check if it belongs to the specified wishlist
+    if product.wishlist_id != wishlist_id:
+        abort(status.HTTP_403_FORBIDDEN, "Product does not belong to the specified wishlist.")
+
+    # Get the request data
+    data = request.get_json()
+
+    # Update the is_gift field with the provided value
+    product.is_gift = data.get("is_gift", True)
+    product.update()
+
+    return jsonify(product.serialize()), status.HTTP_200_OK
+
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S

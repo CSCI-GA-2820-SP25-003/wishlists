@@ -859,3 +859,118 @@ class TestWishlistService(TestCase):
 
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
         self.assertIn("Content-Type must be", resp.get_data(as_text=True))
+
+    def test_update_product_is_gift_true(self):
+        """Test marking a product as a gift (is_gift = True)"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Create a product within the wishlist
+        product = self._create_products(wishlist.id, 1)[0]
+
+        # Update data to mark product as a gift
+        update_data = {
+            "is_gift": True
+        }
+
+        # Make a PATCH request to update the product's is_gift status
+        resp = self.client.patch(
+            f"/wishlists/{wishlist.id}/products/{product.id}/gift",
+            json=update_data,
+            headers=self.headers
+        )
+
+        # Assert the status code is 200 (OK) as the update should be successful
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Retrieve the updated product to verify the change
+        updated_product = resp.get_json()
+
+        # Assert that the product's is_gift status is now True
+        self.assertTrue(updated_product["is_gift"])
+
+        # Optionally, check if the other attributes remain unchanged
+        self.assertEqual(updated_product["id"], product.id)
+        self.assertEqual(updated_product["wishlist_id"], wishlist.id)
+        self.assertEqual(updated_product["name"], product.name)
+        self.assertEqual(updated_product["price"], str(product.price))
+        self.assertEqual(updated_product["description"], product.description)
+        self.assertEqual(updated_product["note"], product.note)
+
+    def test_update_product_is_gift_false(self):
+        """Test unmarking a product as a gift (is_gift = False)"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Create a product within the wishlist that is already marked as a gift
+        product = self._create_products(wishlist.id, 1)[0]
+        product.is_gift = True
+        product.update()
+
+        # Update data to unmark product as a gift
+        update_data = {
+            "is_gift": False
+        }
+
+        # Make a PATCH request to update the product's is_gift status
+        resp = self.client.patch(
+            f"/wishlists/{wishlist.id}/products/{product.id}/gift",
+            json=update_data,
+            headers=self.headers
+        )
+
+        # Assert the status code is 200 (OK) as the update should be successful
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Retrieve the updated product to verify the change
+        updated_product = resp.get_json()
+
+        # Assert that the product's is_gift status is now False
+        self.assertFalse(updated_product["is_gift"])
+
+    def test_mark_product_not_found(self):
+        """Test marking a product that doesn't exist"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Use a non-existent product ID
+        nonexistent_product_id = 99999
+
+        # Update data to mark product as a gift
+        update_data = {
+            "is_gift": True
+        }
+
+        # Make a PATCH request with a non-existent product ID
+        resp = self.client.patch(
+            f"/wishlists/{wishlist.id}/products/{nonexistent_product_id}/gift",
+            json=update_data,
+            headers=self.headers
+        )
+
+        # Assert the status code is 404 (Not Found)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_mark_product_wrong_wishlist(self):
+        """Test marking a product that belongs to a different wishlist"""
+        # Create two wishlists
+        wishlist1 = self._create_wishlists(1)[0]
+        wishlist2 = self._create_wishlists(1)[0]
+
+        # Create a product in wishlist1
+        product = self._create_products(wishlist1.id, 1)[0]
+
+        # Update data to mark product as a gift
+        update_data = {
+            "is_gift": True
+        }
+
+        # Make a PATCH request using wishlist2's ID but product belongs to wishlist1
+        resp = self.client.patch(
+            f"/wishlists/{wishlist2.id}/products/{product.id}/gift",
+            json=update_data,
+            headers=self.headers
+        )
+
+        # Assert the status code is 403 (Forbidden)
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
