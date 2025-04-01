@@ -44,5 +44,6 @@ class ProductFactory(Factory):
     price = Faker("pydecimal", left_digits=3, right_digits=2, positive=True)
     description = Faker("sentence")
     wishlist = SubFactory(WishlistFactory)
+    quantity = 1
     note = None
     is_gift = False

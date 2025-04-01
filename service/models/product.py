@@ -31,6 +31,7 @@ class Product(db.Model, PersistentBase):
     """
     Class that represents an Product
     """
+
     __tablename__ = "products"  # Define table name explicitly
 
     # Table Schema
@@ -40,8 +41,11 @@ class Product(db.Model, PersistentBase):
         db.Integer, db.ForeignKey("wishlist.id", ondelete="CASCADE"), nullable=False
     )
     name = db.Column(db.String(64), nullable=False)  # Product name
-    price = db.Column(db.Numeric(10, 2), nullable=False)  # Numeric price with 2 decimal places
+    price = db.Column(
+        db.Numeric(10, 2), nullable=False
+    )  # Numeric price with 2 decimal places
     description = db.Column(db.String(255))  # Increased length for better descriptions
+    quantity = db.Column(db.Integer, nullable=False)
     note = db.Column(db.String(255), nullable=True)  # Field for the note
     is_gift = db.Column(db.Boolean, default=False)
 
@@ -49,9 +53,7 @@ class Product(db.Model, PersistentBase):
         return f"<Product {self.name} id=[{self.id}] wishlist[{self.wishlist_id}]>"
 
     def __str__(self):
-        return (
-            f"{self.name}: {self.price}, {self.description}"
-        )
+        return f"{self.name}: {self.price}, {self.description}"
 
     def serialize(self) -> dict:
         """Converts a Product into a dictionary"""
@@ -61,6 +63,7 @@ class Product(db.Model, PersistentBase):
             "name": self.name,
             "price": self.price,
             "description": self.description,
+            "quantity": self.quantity,
             "note": self.note,
             "is_gift": self.is_gift if self.is_gift is not None else False,
         }
@@ -77,8 +80,11 @@ class Product(db.Model, PersistentBase):
             self.name = data["name"]
             self.price = data["price"]
             self.description = data["description"]
+            self.quantity = data["quantity"]
             self.note = data.get("note", None)
             self.is_gift = data.get("is_gift", False)
+        except AttributeError as error:
+            raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
             raise DataValidationError(
                 "Invalid Product: missing " + error.args[0]

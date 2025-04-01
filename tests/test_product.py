@@ -130,6 +130,36 @@ class TestProduct(TestCase):
         updated_product = Product.find(old_product.id)
         self.assertEqual(updated_product.description, "XX")
 
+    def test_update_product_quantity(self):
+        """It should Update a wishlist product's quantity"""
+        wishlists = Wishlist.all()
+        self.assertEqual(wishlists, [])
+
+        # Create a Wishlist and a Product
+        wishlist = WishlistFactory()
+        product = ProductFactory(wishlist=wishlist)
+        wishlist.create()  # Save the wishlist (and its products) to the database
+
+        # Assert that the wishlist was assigned an ID and exists in the database
+        self.assertIsNotNone(wishlist.id)
+        wishlists = Wishlist.all()
+        self.assertEqual(len(wishlists), 1)
+
+        # Fetch the wishlist from the database and get the product
+        wishlist = Wishlist.find(wishlist.id)
+        old_product = wishlist.products[0]
+
+        # Assert that the description is correct
+        self.assertEqual(old_product.description, product.description)
+
+        # Update the product's description
+        old_product.quantity = 2
+        # Commit the change to the database
+        db.session.commit()  # This saves the change
+        # Fetch the product back and check the updated description
+        updated_product = Product.find(old_product.id)
+        self.assertEqual(updated_product.quantity, 2)
+
     def test_serialize_an_product(self):
         """It should serialize a Product"""
         product = ProductFactory()
@@ -139,6 +169,7 @@ class TestProduct(TestCase):
         self.assertEqual(serial_product["name"], product.name)
         self.assertEqual(serial_product["price"], product.price)
         self.assertEqual(serial_product["description"], product.description)
+        self.assertEqual(serial_product["quantity"], product.quantity)
 
     def test_deserialize_an_product(self):
         """It should deserialize a Product"""
@@ -150,6 +181,7 @@ class TestProduct(TestCase):
         self.assertEqual(new_product.name, product.name)
         self.assertEqual(new_product.price, product.price)
         self.assertEqual(new_product.description, product.description)
+        self.assertEqual(new_product.quantity, product.quantity)
 
     # Completed
 

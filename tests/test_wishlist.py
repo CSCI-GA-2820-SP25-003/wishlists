@@ -154,6 +154,7 @@ class TestWishlist(TestCase):
         self.assertEqual(products[0]["name"], product.name)
         self.assertEqual(products[0]["price"], product.price)
         self.assertEqual(products[0]["description"], product.description)
+        self.assertEqual(products[0]["quantity"], product.quantity)
 
     def test_deserialize_an_wishlist(self):
         """It should Deserialize an wishlist"""
@@ -202,6 +203,7 @@ class TestWishlist(TestCase):
         product.name = "Test Product"
         product.price = 10.99
         product.description = "Test Description"
+        product.quantity = 1
         db.session.add(product)
         db.session.commit()
         product_id = product.id
