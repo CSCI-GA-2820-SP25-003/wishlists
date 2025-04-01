@@ -904,7 +904,7 @@ class TestWishlistService(TestCase):
         update_data = {"quantity": 2}
 
         resp = self.client.patch(
-            f"/wishlists/{wishlist.id}/products/{product.id}/update_quantity",
+            f"/wishlists/{wishlist.id}/products/{product.id}",
             json=update_data,
             headers=self.headers,
         )
@@ -934,7 +934,7 @@ class TestWishlistService(TestCase):
         update_data = {"quantity": 0}
 
         resp = self.client.patch(
-            f"/wishlists/{wishlist.id}/products/{product.id}/update_quantity",
+            f"/wishlists/{wishlist.id}/products/{product.id}",
             json=update_data,
             headers=self.headers,
         )
@@ -954,7 +954,7 @@ class TestWishlistService(TestCase):
 
         # Attempt to update the product's quantity in wishlist2
         response = self.client.patch(
-            f"/wishlists/{wishlist2.id}/products/{product.id}/update_quantity",
+            f"/wishlists/{wishlist2.id}/products/{product.id}",
             json=update_data,
             headers=self.headers,
         )
@@ -974,7 +974,7 @@ class TestWishlistService(TestCase):
 
         # Attempt to update the product's quantity in wishlist
         response = self.client.patch(
-            f"/wishlists/{wishlist.id}/products/{product.id}/update_quantity",
+            f"/wishlists/{wishlist.id}/products/{product.id}",
             json=update_data,
             headers=self.headers,
         )
@@ -989,7 +989,7 @@ class TestWishlistService(TestCase):
 
         # Attempt to update the product's quantity in wishlist
         response = self.client.patch(
-            f"/wishlists/{wishlist.id}/products/{product.id}/update_quantity",
+            f"/wishlists/{wishlist.id}/products/{product.id}",
             json=update_data,
             headers=self.headers,
         )
@@ -998,33 +998,6 @@ class TestWishlistService(TestCase):
         self.assertIn(
             "must be an integer greater than or equal to zero",
             response.get_data(as_text=True),
-        )
-
-    def test_update_quantity_missing_fields(self):
-        """Test PATCH update with no valid fields"""
-        # Create a wishlist
-        wishlist = self._create_wishlists(1)[0]
-
-        # Create a product
-        product = self._create_products(wishlist.id, 1)[0]
-
-        # Create an update with only invalid fields
-        update_data = {
-            "invalid_field": "This won't be processed",
-            "another_invalid": "Also not valid",
-        }
-
-        resp = self.client.patch(
-            f"/wishlists/{wishlist.id}/products/{product.id}/update_quantity",
-            json=update_data,
-            headers=self.headers,
-        )
-
-        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        data = resp.get_json()
-        self.assertIn(
-            "must contain at least one valid field to update",
-            data["message"],
         )
 
     def test_update_product_patch_missing_fields(self):
@@ -1050,7 +1023,7 @@ class TestWishlistService(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         data = resp.get_json()
         self.assertIn(
-            "PATCH request must include note or is_gift",
+            "PATCH request must include note, is_gift, or quantity fields",
             data["message"],
         )
 

@@ -301,19 +301,23 @@ def update_product(wishlist_id, product_id):
 
     if request.method == "PATCH":
         # PATCH: Update only specific allowed fields
-        allowed_fields = {"note", "is_gift"}
+        allowed_fields = {"note", "is_gift", "quantity"}
 
         # Check if any allowed fields are in the request
         if not any(field in data for field in allowed_fields):
             abort(
                 status.HTTP_400_BAD_REQUEST,
-                "PATCH request must include note or is_gift fields",
+                "PATCH request must include note, is_gift, or quantity fields",
             )
 
         # Update only provided fields
         for field in allowed_fields:
             if field in data:
                 setattr(product, field, data[field])
+
+        # Handle quantity update
+        if "quantity" in data:
+            return update_product_quantity(product, data)
 
     else:  # PUT: Full update
         # Validate required fields
@@ -336,66 +340,6 @@ def update_product(wishlist_id, product_id):
             "is_gift", False if product.is_gift is None else product.is_gift
         )
 
-    # Save changes
-    product.update()
-
-    # # Ensure is_gift is not None in response
-    product_dict = product.serialize()
-
-    return jsonify(product_dict), status.HTTP_200_OK
-
-
-@app.route(
-    "/wishlists/<wishlist_id>/products/<product_id>/update_quantity",
-    methods=["PATCH", "PUT"],
-)
-def update_product_quantity(wishlist_id, product_id):
-    """
-    Update a product's quantity in a wishlist
-
-    This RESTful endpoint updates a product's quantity with the fields provided.
-    Supports both PATCH (partial update) and PUT (full update).
-    """
-
-    app.logger.info(
-        "Request to update Product %s in Wishlist %s", product_id, wishlist_id
-    )
-    check_content_type("application/json")
-
-    # Find product and verify it exists
-    product = Product.find(product_id)
-    if not product:
-        abort(
-            status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found."
-        )
-
-    # Verify product belongs to wishlist (convert to strings for comparison)
-    if str(product.wishlist_id) != str(wishlist_id):
-        return (
-            jsonify(
-                status=status.HTTP_403_FORBIDDEN,
-                error="Forbidden",
-                message="Product does not belong to the specified wishlist.",
-            ),
-            status.HTTP_403_FORBIDDEN,
-        )
-
-    # Get and validate request data
-    data = request.get_json()
-    if not data or "quantity" not in data:
-        abort(
-            status.HTTP_400_BAD_REQUEST,
-            "Request must contain at least one valid field to update",
-        )
-
-    if data["quantity"] == 0:
-        return "", status.HTTP_204_NO_CONTENT
-    if not isinstance(data["quantity"], int) or data["quantity"] < 0:
-        abort(
-            status.HTTP_400_BAD_REQUEST,
-            "Quantity must be an integer greater than or equal to zero",
-        )
-    product.quantity = data["quantity"]
     # Save changes
     product.update()
 
@@ -513,3 +457,23 @@ def check_content_type(content_type):
     abort(
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, f"Content-Type must be {content_type}"
     )
+
+
+def update_product_quantity(product, data):
+    """Update a product's quantity in a wishlist"""
+
+    if data["quantity"] == 0:
+        return "", status.HTTP_204_NO_CONTENT
+    if not isinstance(data["quantity"], int) or data["quantity"] < 0:
+        abort(
+            status.HTTP_400_BAD_REQUEST,
+            "Quantity must be an integer greater than or equal to zero",
+        )
+    product.quantity = data["quantity"]
+    # Save changes
+    product.update()
+
+    # # Ensure is_gift is not None in response
+    product_dict = product.serialize()
+
+    return jsonify(product_dict), status.HTTP_200_OK
