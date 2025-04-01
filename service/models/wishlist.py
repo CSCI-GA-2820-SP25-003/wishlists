@@ -56,8 +56,6 @@ class Wishlist(db.Model, PersistentBase):
                 product = Product()
                 product.deserialize(json_product)
                 self.products.append(product)
-        except AttributeError as error:
-            raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
             raise DataValidationError(
                 "Invalid Wishlist: missing " + error.args[0]

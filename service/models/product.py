@@ -62,7 +62,7 @@ class Product(db.Model, PersistentBase):
             "price": self.price,
             "description": self.description,
             "note": self.note,
-            "is_gift": self.is_gift,
+            "is_gift": self.is_gift if self.is_gift is not None else False,
         }
 
     def deserialize(self, data: dict) -> None:
@@ -78,6 +78,7 @@ class Product(db.Model, PersistentBase):
             self.price = data["price"]
             self.description = data["description"]
             self.note = data.get("note", None)
+            self.is_gift = data.get("is_gift", False)
         except KeyError as error:
             raise DataValidationError(
                 "Invalid Product: missing " + error.args[0]

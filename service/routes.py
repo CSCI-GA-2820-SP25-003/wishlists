@@ -255,37 +255,79 @@ def create_products(wishlist_id):
 ######################################################################
 
 
-@app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>", methods=["PUT"])
-def update_products(wishlist_id, product_id):
+@app.route("/wishlists/<wishlist_id>/products/<product_id>", methods=["PATCH", "PUT"])
+def update_product(wishlist_id, product_id):
     """
-    Update a Product
+    Update a product in a wishlist
 
-    This endpoint will update a Product based the body that is posted
+    This RESTful endpoint updates a product with the fields provided.
+    Supports both PATCH (partial update) and PUT (full update).
     """
-    app.logger.info(
-        "Request to update Product %s for Wishlist id: %s", (product_id, wishlist_id)
-    )
+
+    app.logger.info("Request to update Product %s in Wishlist %s", product_id, wishlist_id)
     check_content_type("application/json")
 
-    # See if the product exists and abort if it doesn't
+    # Find product and verify it exists
     product = Product.find(product_id)
     if not product:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Wishlist with id '{product_id}' could not be found.",
-        )
+        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
 
-    # Update from the json in the body of the request
-    product.deserialize(request.get_json())
-    product.id = product_id
+    # Verify product belongs to wishlist (convert to strings for comparison)
+    if str(product.wishlist_id) != str(wishlist_id):
+        return jsonify(
+            status=status.HTTP_403_FORBIDDEN,
+            error="Forbidden",
+            message="Product does not belong to the specified wishlist."
+        ), status.HTTP_403_FORBIDDEN
+
+    # Get and validate request data
+    data = request.get_json()
+    if not data:
+        abort(status.HTTP_400_BAD_REQUEST, "Request must contain at least one valid field to update")
+
+    if request.method == "PATCH":
+        # PATCH: Update only specific allowed fields
+        allowed_fields = {'note', 'is_gift'}
+
+        # Check if any allowed fields are in the request
+        if not any(field in data for field in allowed_fields):
+            abort(status.HTTP_400_BAD_REQUEST, "PATCH request must include note or is_gift fields")
+
+        # Update only provided fields
+        for field in allowed_fields:
+            if field in data:
+                setattr(product, field, data[field])
+
+    else:  # PUT: Full update
+        # Validate required fields
+        required_fields = ["name", "price", "description"]
+        missing = [f for f in required_fields if f not in data]
+        if missing:
+            abort(status.HTTP_400_BAD_REQUEST, f"Missing required fields: {', '.join(missing)}")
+
+        # Update required fields
+        product.name = data["name"]
+        product.price = data["price"]
+        product.description = data["description"]
+
+        # Update optional fields
+        product.note = data.get("note", product.note)
+        product.is_gift = data.get("is_gift", False if product.is_gift is None else product.is_gift)
+
+    # Save changes
     product.update()
 
-    return jsonify(product.serialize()), status.HTTP_200_OK
+    # # Ensure is_gift is not None in response
+    product_dict = product.serialize()
+
+    return jsonify(product_dict), status.HTTP_200_OK
 
 
 ######################################################################
 # RETRIEVE A PRODUCT FROM WISHLIST
 ######################################################################
+
+
 @app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>", methods=["GET"])
 def get_products(wishlist_id, product_id):
     """
@@ -366,74 +408,6 @@ def delete_wishlists(wishlist_id):
 
     # Return 204 regardless of whether the wishlist existed
     return "", status.HTTP_204_NO_CONTENT
-
-
-######################################################################
-# UPDATE A NOTE OF A PRODUCT
-######################################################################
-
-
-@app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>/note", methods=["PATCH"])
-def update_product_note(wishlist_id, product_id):
-    """
-    Update the note of a product in a wishlist
-
-    This endpoint updates only the 'note' field of a product.
-    """
-    app.logger.info("Request to update note for Product %s in Wishlist %s", product_id, wishlist_id)
-    check_content_type("application/json")
-
-    # Retrieve the product
-    product = Product.find(product_id)
-    if not product:
-        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
-
-    # Check if the product belongs to the given wishlist
-    if product.wishlist_id != wishlist_id:
-        abort(status.HTTP_400_BAD_REQUEST, "Product does not belong to the specified wishlist.")
-
-    # Update the note field
-    data = request.get_json()
-    if "note" not in data:
-        abort(status.HTTP_400_BAD_REQUEST, "Request must contain a 'note' field.")
-
-    product.note = data["note"]
-    product.update()
-
-    return jsonify(product.serialize()), status.HTTP_200_OK
-
-######################################################################
-# UPDATE STATUS OF PRODUCT
-######################################################################
-
-
-@app.route("/wishlists/<int:wishlist_id>/products/<int:product_id>/gift", methods=["PATCH"])
-def mark_product_as_gift(wishlist_id, product_id):
-    """
-    Mark or unmark a product in a wishlist as a gift.
-
-    This endpoint updates the 'gift' status of a product.
-    """
-    app.logger.info("Request to update gift status for Product %s in Wishlist %s", product_id, wishlist_id)
-    check_content_type("application/json")
-
-    # First, find the product by ID regardless of wishlist
-    product = Product.find(product_id)
-    if not product:
-        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
-
-    # Then check if it belongs to the specified wishlist
-    if product.wishlist_id != wishlist_id:
-        abort(status.HTTP_403_FORBIDDEN, "Product does not belong to the specified wishlist.")
-
-    # Get the request data
-    data = request.get_json()
-
-    # Update the is_gift field with the provided value
-    product.is_gift = data.get("is_gift", True)
-    product.update()
-
-    return jsonify(product.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
