@@ -310,19 +310,22 @@ def update_product(wishlist_id, product_id):
                 "PATCH request must include note, is_gift, or quantity fields",
             )
 
+        # Check if quantity is valid
+        if "quantity" in data:
+            if data["quantity"] == 0:
+                product.delete()
+                return "", status.HTTP_204_NO_CONTENT
+            if not isinstance(data["quantity"], int) or data["quantity"] < 0:
+                abort(
+                    status.HTTP_400_BAD_REQUEST,
+                    "Quantity must be an integer greater than or equal to 0",
+                )
+
         # Update only provided fields
         for field in allowed_fields:
             if field in data:
                 setattr(product, field, data[field])
-                if field == "quantity":
-                    if data["quantity"] == 0:
-                        product.delete()
-                        return "", status.HTTP_204_NO_CONTENT
-                    elif not isinstance(data["quantity"], int) or data["quantity"] < 0:
-                        abort(
-                            status.HTTP_400_BAD_REQUEST,
-                            "Quantity must be an integer greater than or equal to 0",
-                        )
+
     else:  # PUT: Full update
         # Validate required fields
         required_fields = ["name", "price", "description"]
