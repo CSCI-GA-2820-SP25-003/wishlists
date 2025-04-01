@@ -19,6 +19,7 @@ TestWishlist API Service Test Suite
 """
 
 # pylint: disable=duplicate-code
+# pylint: disable=too-many-lines
 import os
 import json
 import logging
