@@ -45,7 +45,7 @@ class Product(db.Model, PersistentBase):
         db.Numeric(10, 2), nullable=False
     )  # Numeric price with 2 decimal places
     description = db.Column(db.String(255))  # Increased length for better descriptions
-    quantity = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, default=1)
     note = db.Column(db.String(255), nullable=True)  # Field for the note
     is_gift = db.Column(db.Boolean, default=False)
 
