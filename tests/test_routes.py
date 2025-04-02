@@ -1261,10 +1261,45 @@ class TestWishlistService(TestCase):
         verify_data = verify_resp.get_json()
         self.assertNotEqual(verify_data.get("purchased"), True)
 
+    def test_filter_products_by_partial_name(self):
+        """It should filter products by partial product_name (case-insensitive)"""
+        wishlist = self._create_wishlists(1)[0]
+
+        # Add products with names that will and won't match
+        matching_names = ["Notebook", "Book of Magic", "Storybook"]
+        non_matching_names = ["Pen", "Pencil", "Eraser"]
+
+        for name in matching_names:
+            product = ProductFactory(name=name)
+            self.client.post(
+                f"{BASE_URL}/{wishlist.id}/products",
+                json=product.serialize(),
+                content_type="application/json",
+            )
+
+        for name in non_matching_names:
+            product = ProductFactory(name=name)
+            self.client.post(
+                f"{BASE_URL}/{wishlist.id}/products",
+                json=product.serialize(),
+                content_type="application/json",
+            )
+
+        # Search for 'book' (should match all in matching_names)
+        resp = self.client.get(
+            f"{BASE_URL}/{wishlist.id}/products", query_string={"product_name": "book"}
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        results = resp.get_json()
+        self.assertEqual(len(results), len(matching_names))
+        for product in results:
+            self.assertIn("book", product["name"].lower())
+
     def test_filter_products_min_price(self):
         """It should return only products with price >= specified min_price."""
         # Create a wishlist
         wishlist = self._create_wishlists(1)[0]
+
         # Create products with different prices
         prices = [10.00, 20.00, 30.00]
         for i, price in enumerate(prices):
@@ -1274,21 +1309,26 @@ class TestWishlistService(TestCase):
                 json=product.serialize(),
                 content_type="application/json",
             )
+
         # Request products with min_price filter
         resp = self.client.get(
             f"{BASE_URL}/{wishlist.id}/products", query_string={"min_price": "25"}
         )
+
         # Check response
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         results = resp.get_json()
+
         # Only product with price 30.00 should be returned
         self.assertEqual(len(results), 1)
         self.assertEqual(float(results[0]["price"]), 30.00)
         self.assertEqual(results[0]["name"], "Product 3")
+
     def test_filter_products_max_price(self):
         """It should return only products with price <= specified max_price."""
         # Create a wishlist
         wishlist = self._create_wishlists(1)[0]
+
         # Create products with different prices
         prices = [10.00, 20.00, 30.00]
         for i, price in enumerate(prices):
@@ -1298,22 +1338,26 @@ class TestWishlistService(TestCase):
                 json=product.serialize(),
                 content_type="application/json",
             )
+
         # Request products with max_price filter
         resp = self.client.get(
             f"{BASE_URL}/{wishlist.id}/products", query_string={"max_price": "15"}
         )
+
         # Check response
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         results = resp.get_json()
+
         # Only product with price 10.00 should be returned
         self.assertEqual(len(results), 1)
         self.assertEqual(float(results[0]["price"]), 10.00)
         self.assertEqual(results[0]["name"], "Product 1")
-        
+
     def test_filter_products_min_max_price(self):
         """It should return only products within the specified price range."""
         # Create a wishlist
         wishlist = self._create_wishlists(1)[0]
+
         # Create products with different prices
         prices = [10.00, 20.00, 30.00]
         for i, price in enumerate(prices):
@@ -1323,22 +1367,27 @@ class TestWishlistService(TestCase):
                 json=product.serialize(),
                 content_type="application/json",
             )
+
         # Request products with min_price and max_price filter
         resp = self.client.get(
             f"{BASE_URL}/{wishlist.id}/products",
             query_string={"min_price": "15", "max_price": "25"}
         )
+
         # Check response
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         results = resp.get_json()
+
         # Only product with price 20.00 should be returned
         self.assertEqual(len(results), 1)
         self.assertEqual(float(results[0]["price"]), 20.00)
         self.assertEqual(results[0]["name"], "Product 2")
+
     def test_invalid_price_query(self):
         """It should return 400 Bad Request when price query parameters are invalid."""
         # Create a wishlist
         wishlist = self._create_wishlists(1)[0]
+
         # Create a product
         product = ProductFactory()
         self.client.post(
@@ -1346,17 +1395,21 @@ class TestWishlistService(TestCase):
             json=product.serialize(),
             content_type="application/json",
         )
+
         # Request with invalid min_price parameter
         resp = self.client.get(
             f"{BASE_URL}/{wishlist.id}/products", query_string={"min_price": "invalid"}
         )
+
         # Check response
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Invalid min_price", resp.get_data(as_text=True))
+
     def test_invalid_max_price_query(self):
         """It should return 400 Bad Request when max_price query parameter is invalid."""
         # Create a wishlist
         wishlist = self._create_wishlists(1)[0]
+
         # Create a product
         product = ProductFactory()
         self.client.post(
@@ -1364,11 +1417,12 @@ class TestWishlistService(TestCase):
             json=product.serialize(),
             content_type="application/json",
         )
+
         # Request with invalid max_price parameter
         resp = self.client.get(
             f"{BASE_URL}/{wishlist.id}/products", query_string={"max_price": "invalid"}
         )
+
         # Check response
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Invalid max_price", resp.get_data(as_text=True))
-

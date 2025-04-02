@@ -198,16 +198,19 @@ def update_wishlists(wishlist_id):
 def list_products(wishlist_id):
     """Returns all of the Products for a Wishlist, optionally filtered by product_name, min_price, and max_price"""
     app.logger.info("Request for all Products for Wishlist with id: %s", wishlist_id)
+
     wishlist = Wishlist.find(wishlist_id)
     if not wishlist:
         abort(
             status.HTTP_404_NOT_FOUND,
             f"Wishlist with id '{wishlist_id}' could not be found.",
         )
+
     # Get filter parameters
     product_name = request.args.get("product_name", "").strip().lower()
     min_price = request.args.get("min_price")
     max_price = request.args.get("max_price")
+
     # Validate price parameters if provided
     if min_price:
         try:
@@ -217,6 +220,7 @@ def list_products(wishlist_id):
                 status.HTTP_400_BAD_REQUEST,
                 "Invalid min_price parameter. Must be a valid number."
             )
+
     if max_price:
         try:
             max_price = float(max_price)
@@ -225,17 +229,22 @@ def list_products(wishlist_id):
                 status.HTTP_400_BAD_REQUEST,
                 "Invalid max_price parameter. Must be a valid number."
             )
+
     # Apply filters
     products = wishlist.products
+
     # Filter by name if provided
     if product_name:
         products = [p for p in products if product_name in p.name.lower()]
+
     # Filter by min price if provided
     if min_price is not None:
         products = [p for p in products if p.price >= min_price]
+
     # Filter by max price if provided
     if max_price is not None:
         products = [p for p in products if p.price <= max_price]
+
     # Return results
     results = [product.serialize() for product in products]
     return jsonify(results), status.HTTP_200_OK
@@ -286,95 +295,6 @@ def create_products(wishlist_id):
 # UPDATE A PRODUCT
 ######################################################################
 
-
-# @app.route("/wishlists/<wishlist_id>/products/<product_id>", methods=["PATCH", "PUT"])
-# def update_product(wishlist_id, product_id):
-#     """
-#     Update a product in a wishlist
-
-#     This RESTful endpoint updates a product with the fields provided.
-#     Supports both PATCH (partial update) and PUT (full update).
-#     """
-
-#     app.logger.info(
-#         "Request to update Product %s in Wishlist %s", product_id, wishlist_id
-#     )
-#     check_content_type("application/json")
-
-#     # Find product and verify it exists
-#     product = Product.find(product_id)
-#     if not product:
-#         abort(
-#             status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found."
-#         )
-
-#     # Verify product belongs to wishlist (convert to strings for comparison)
-#     if str(product.wishlist_id) != str(wishlist_id):
-#         return (
-#             jsonify(
-#                 status=status.HTTP_403_FORBIDDEN,
-#                 error="Forbidden",
-#                 message="Product does not belong to the specified wishlist.",
-#             ),
-#             status.HTTP_403_FORBIDDEN,
-#         )
-
-#     # Get and validate request data
-#     data = request.get_json()
-#     if not data:
-#         abort(
-#             status.HTTP_400_BAD_REQUEST,
-#             "Request must contain at least one valid field to update",
-#         )
-
-#     if request.method == "PATCH":
-#         # PATCH: Update only specific allowed fields
-#         allowed_fields = {"note", "is_gift", "quantity"}
-
-#         # Check if any allowed fields are in the request
-#         if not any(field in data for field in allowed_fields):
-#             abort(
-#                 status.HTTP_400_BAD_REQUEST,
-#                 "PATCH request must include note, is_gift, or quantity fields",
-#             )
-
-#         # Update only provided fields
-#         for field in allowed_fields:
-#             if field in data:
-#                 setattr(product, field, data[field])
-
-#         # Handle quantity update
-#         if "quantity" in data:
-#             return update_product_quantity(product, data)
-
-#     else:  # PUT: Full update
-#         # Validate required fields
-#         required_fields = ["name", "price", "description"]
-#         missing = [f for f in required_fields if f not in data]
-#         if missing:
-#             abort(
-#                 status.HTTP_400_BAD_REQUEST,
-#                 f"Missing required fields: {', '.join(missing)}",
-#             )
-
-#         # Update required fields
-#         product.name = data["name"]
-#         product.price = data["price"]
-#         product.description = data["description"]
-
-#         # Update optional fields
-#         product.note = data.get("note", product.note)
-#         product.is_gift = data.get(
-#             "is_gift", False if product.is_gift is None else product.is_gift
-#         )
-
-#     # Save changes
-#     product.update()
-
-#     # # Ensure is_gift is not None in response
-#     product_dict = product.serialize()
-
-#     return jsonify(product_dict), status.HTTP_200_OK
 
 @app.route("/wishlists/<wishlist_id>/products/<product_id>", methods=["PATCH", "PUT"])
 def update_product(wishlist_id, product_id):
