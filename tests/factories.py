@@ -47,3 +47,4 @@ class ProductFactory(Factory):
     quantity = 1
     note = None
     is_gift = False
+    purchased = False
