@@ -1261,36 +1261,36 @@ class TestWishlistService(TestCase):
         verify_data = verify_resp.get_json()
         self.assertNotEqual(verify_data.get("purchased"), True)
 
-def test_filter_products_by_partial_name(self):
-    """It should filter products by partial product_name (case-insensitive)"""
-    wishlist = self._create_wishlists(1)[0]
+    def test_filter_products_by_partial_name(self):
+        """It should filter products by partial product_name (case-insensitive)"""
+        wishlist = self._create_wishlists(1)[0]
 
-    # Add products with names that will and won't match
-    matching_names = ["Notebook", "Book of Magic", "Storybook"]
-    non_matching_names = ["Pen", "Pencil", "Eraser"]
+        # Add products with names that will and won't match
+        matching_names = ["Notebook", "Book of Magic", "Storybook"]
+        non_matching_names = ["Pen", "Pencil", "Eraser"]
 
-    for name in matching_names:
-        product = ProductFactory(name=name)
-        self.client.post(
-            f"{BASE_URL}/{wishlist.id}/products",
-            json=product.serialize(),
-            content_type="application/json",
+        for name in matching_names:
+            product = ProductFactory(name=name)
+            self.client.post(
+                f"{BASE_URL}/{wishlist.id}/products",
+                json=product.serialize(),
+                content_type="application/json",
+            )
+
+        for name in non_matching_names:
+            product = ProductFactory(name=name)
+            self.client.post(
+                f"{BASE_URL}/{wishlist.id}/products",
+                json=product.serialize(),
+                content_type="application/json",
+            )
+
+        # Search for 'book' (should match all in matching_names)
+        resp = self.client.get(
+            f"{BASE_URL}/{wishlist.id}/products", query_string={"product_name": "book"}
         )
-
-    for name in non_matching_names:
-        product = ProductFactory(name=name)
-        self.client.post(
-            f"{BASE_URL}/{wishlist.id}/products",
-            json=product.serialize(),
-            content_type="application/json",
-        )
-
-    # Search for 'book' (should match all in matching_names)
-    resp = self.client.get(
-        f"{BASE_URL}/{wishlist.id}/products", query_string={"product_name": "book"}
-    )
-    self.assertEqual(resp.status_code, status.HTTP_200_OK)
-    results = resp.get_json()
-    self.assertEqual(len(results), len(matching_names))
-    for product in results:
-        self.assertIn("book", product["name"].lower())
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        results = resp.get_json()
+        self.assertEqual(len(results), len(matching_names))
+        for product in results:
+            self.assertIn("book", product["name"].lower())
