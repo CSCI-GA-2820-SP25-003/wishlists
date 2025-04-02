@@ -85,6 +85,7 @@ class Product(db.Model, PersistentBase):
             self.quantity = data["quantity"]
             self.note = data.get("note", None)
             self.is_gift = data.get("is_gift", False)
+            self.purchased = data.get("purchased", False)
         except KeyError as error:
             raise DataValidationError(
                 "Invalid Product: missing " + error.args[0]
