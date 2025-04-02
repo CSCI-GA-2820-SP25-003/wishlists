@@ -27,7 +27,7 @@ logger = logging.getLogger("flask.app")
 ######################################################################
 #  PRODUCT   M O D E L
 ######################################################################
-class Product(db.Model, PersistentBase):
+class Product(db.Model, PersistentBase):  # pylint: disable=too-many-instance-attributes
     """
     Class that represents an Product
     """
@@ -83,8 +83,9 @@ class Product(db.Model, PersistentBase):
             self.price = data["price"]
             self.description = data["description"]
             self.quantity = data["quantity"]
-            self.note = data.get("note", None)
-            self.is_gift = data.get("is_gift", False)
+            self.note = data["note"] or None
+            self.is_gift = data["is_gift"] or False
+            self.purchased = data["purchased"] or False
         except KeyError as error:
             raise DataValidationError(
                 "Invalid Product: missing " + error.args[0]
