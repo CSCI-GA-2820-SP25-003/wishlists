@@ -196,20 +196,48 @@ def update_wishlists(wishlist_id):
 ######################################################################
 @app.route("/wishlists/<int:wishlist_id>/products", methods=["GET"])
 def list_products(wishlist_id):
-    """Returns all of the Products for an Wishlist"""
+    """Returns all of the Products for a Wishlist, optionally filtered by product_name, min_price, and max_price"""
     app.logger.info("Request for all Products for Wishlist with id: %s", wishlist_id)
-
-    # See if the wishlist exists and abort if it doesn't
     wishlist = Wishlist.find(wishlist_id)
     if not wishlist:
         abort(
             status.HTTP_404_NOT_FOUND,
             f"Wishlist with id '{wishlist_id}' could not be found.",
         )
-
-    # Get the products for the wishlist
-    results = [product.serialize() for product in wishlist.products]
-
+    # Get filter parameters
+    product_name = request.args.get("product_name", "").strip().lower()
+    min_price = request.args.get("min_price")
+    max_price = request.args.get("max_price")
+    # Validate price parameters if provided
+    if min_price:
+        try:
+            min_price = float(min_price)
+        except ValueError:
+            abort(
+                status.HTTP_400_BAD_REQUEST,
+                "Invalid min_price parameter. Must be a valid number."
+            )
+    if max_price:
+        try:
+            max_price = float(max_price)
+        except ValueError:
+            abort(
+                status.HTTP_400_BAD_REQUEST,
+                "Invalid max_price parameter. Must be a valid number."
+            )
+    # Apply filters
+    products = wishlist.products
+    # Filter by name if provided
+    if product_name:
+        products = [p for p in products if product_name in p.name.lower()]
+    # Filter by min price if provided
+    if min_price is not None:
+        products = [p for p in products if p.price >= min_price]
+    # Filter by max price if provided
+    if max_price is not None:
+        products = [p for p in products if p.price <= max_price]
+    # Return results
+    results = [product.serialize() for product in products]
     return jsonify(results), status.HTTP_200_OK
 
 
@@ -526,54 +554,6 @@ def delete_wishlists(wishlist_id):
     # Return 204 regardless of whether the wishlist existed
     return "", status.HTTP_204_NO_CONTENT
 
-######################################################################
-# LIST PRODUCTS WITH PRICE FILTERING (New Endpoint)
-######################################################################
-@app.route("/wishlists/<int:wishlist_id>/products/filter", methods=["GET"])
-def list_products_filter(wishlist_id):
-    """Returns all of the Products for a Wishlist with optional price filtering"""
-    app.logger.info("Request for filtered Products for Wishlist with id: %s", wishlist_id)
-
-    # See if the wishlist exists and abort if it doesn't
-    wishlist = Wishlist.find(wishlist_id)
-    if not wishlist:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Wishlist with id '{wishlist_id}' could not be found.",
-        )
-
-    # Extract query parameters for price filtering
-    min_price_param = request.args.get("min_price")
-    max_price_param = request.args.get("max_price")
-    min_price = None
-    max_price = None
-
-    # Validate and parse min_price if provided
-    if min_price_param is not None:
-        try:
-            min_price = float(min_price_param)
-        except ValueError:
-            abort(status.HTTP_400_BAD_REQUEST, "Invalid min_price. It must be a number.")
-
-    # Validate and parse max_price if provided
-    if max_price_param is not None:
-        try:
-            max_price = float(max_price_param)
-        except ValueError:
-            abort(status.HTTP_400_BAD_REQUEST, "Invalid max_price. It must be a number.")
-
-    # Get the products for the wishlist and apply filtering
-    results = []
-    for product in wishlist.products:
-        price = product.price
-        if min_price is not None and price < min_price:
-            continue
-        if max_price is not None and price > max_price:
-            continue
-        results.append(product.serialize())
-
-    # Return the filtered products in a JSON object
-    return jsonify({"products": results}), status.HTTP_200_OK
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
