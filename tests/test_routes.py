@@ -1023,7 +1023,7 @@ class TestWishlistService(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         data = resp.get_json()
         self.assertIn(
-            "PATCH request must include note, is_gift, or quantity fields",
+            "ATCH request must include note, is_gift, quantity, or purchased fields",
             data["message"],
         )
 
@@ -1084,3 +1084,179 @@ class TestWishlistService(TestCase):
         self.assertIn(product.name, repr(product))
         self.assertIn(str(product.id), repr(product))
         self.assertIn(str(product.wishlist_id), repr(product))
+
+    def test_mark_product_as_purchased(self):
+        """Test marking a product as purchased"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Create a product in the wishlist
+        product = self._create_products(wishlist.id, 1)[0]
+
+        # Prepare the data for marking as purchased
+        update_data = {"purchased": True}
+
+        # Send PATCH request to mark product as purchased
+        resp = self.client.patch(
+            f"/wishlists/{wishlist.id}/products/{product.id}",
+            json=update_data,
+            headers=self.headers
+        )
+
+        # Check response
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Verify data in response
+        data = resp.get_json()
+        self.assertIsNotNone(data)
+        self.assertEqual(data["purchased"], True)
+
+        # Verify data in database by getting the product
+        verify_resp = self.client.get(
+            f"/wishlists/{wishlist.id}/products/{product.id}",
+            headers=self.headers
+        )
+        self.assertEqual(verify_resp.status_code, status.HTTP_200_OK)
+        verify_data = verify_resp.get_json()
+        self.assertEqual(verify_data["purchased"], True)
+
+    def test_mark_product_as_unpurchased(self):
+        """Test marking a product as not purchased (setting to False)"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Create a product in the wishlist
+        product = self._create_products(wishlist.id, 1)[0]
+
+        # First mark it as purchased
+        update_data = {"purchased": True}
+        resp = self.client.patch(
+            f"/wishlists/{wishlist.id}/products/{product.id}",
+            json=update_data,
+            headers=self.headers
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Now mark it as unpurchased
+        update_data = {"purchased": False}
+        resp = self.client.patch(
+            f"/wishlists/{wishlist.id}/products/{product.id}",
+            json=update_data,
+            headers=self.headers
+        )
+
+        # Check response
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Verify data in response
+        data = resp.get_json()
+        self.assertIsNotNone(data)
+        self.assertEqual(data["purchased"], False)
+
+        # Verify in database
+        verify_resp = self.client.get(
+            f"/wishlists/{wishlist.id}/products/{product.id}",
+            headers=self.headers
+        )
+        verify_data = verify_resp.get_json()
+        self.assertEqual(verify_data["purchased"], False)
+
+    def test_put_update_with_purchased_field(self):
+        """Test updating a product with PUT including the purchased field"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Create a product in the wishlist
+        product = self._create_products(wishlist.id, 1)[0]
+
+        # Prepare complete data for PUT update including purchased
+        update_data = {
+            "name": "Updated Product Name",
+            "price": 99.99,
+            "description": "Updated product description",
+            "note": "Gift note updated",
+            "is_gift": True,
+            "purchased": True
+        }
+
+        # Send PUT request
+        resp = self.client.put(
+            f"/wishlists/{wishlist.id}/products/{product.id}",
+            json=update_data,
+            headers=self.headers
+        )
+
+        # Check response
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Verify all data was updated
+        data = resp.get_json()
+        self.assertIsNotNone(data)
+        self.assertEqual(data["name"], "Updated Product Name")
+        self.assertEqual(float(data["price"]), 99.99)
+        self.assertEqual(data["description"], "Updated product description")
+        self.assertEqual(data["note"], "Gift note updated")
+        self.assertEqual(data["is_gift"], True)
+        self.assertEqual(data["purchased"], True)
+
+    def test_patch_multiple_fields_with_purchased(self):
+        """Test PATCH updating multiple fields including purchased"""
+        # Create a wishlist
+        wishlist = self._create_wishlists(1)[0]
+
+        # Create a product in the wishlist
+        product = self._create_products(wishlist.id, 1)[0]
+
+        # Prepare data for partial update
+        update_data = {
+            "note": "Updated note",
+            "purchased": True,
+            "is_gift": True
+        }
+
+        # Send PATCH request
+        resp = self.client.patch(
+            f"/wishlists/{wishlist.id}/products/{product.id}",
+            json=update_data,
+            headers=self.headers
+        )
+
+        # Check response
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Verify data in response
+        data = resp.get_json()
+        self.assertIsNotNone(data)
+        self.assertEqual(data["note"], "Updated note")
+        self.assertEqual(data["is_gift"], True)
+        self.assertEqual(data["purchased"], True)
+
+    def test_wrong_wishlist_with_purchased_update(self):
+        """Test attempt to update purchased status on product in wrong wishlist"""
+        # Create two different wishlists
+        wishlist1 = self._create_wishlists(1)[0]
+        wishlist2 = self._create_wishlists(1)[0]
+
+        # Create a product in wishlist1
+        product = self._create_products(wishlist1.id, 1)[0]
+
+        # Prepare data
+        update_data = {"purchased": True}
+
+        # Send PATCH request with wrong wishlist id
+        resp = self.client.patch(
+            f"/wishlists/{wishlist2.id}/products/{product.id}",
+            json=update_data,
+            headers=self.headers
+        )
+
+        # Should return forbidden error
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Verify product was not updated in wishlist1
+        verify_resp = self.client.get(
+            f"/wishlists/{wishlist1.id}/products/{product.id}",
+            headers=self.headers
+        )
+        verify_data = verify_resp.get_json()
+        self.assertNotEqual(verify_data.get("purchased"), True)

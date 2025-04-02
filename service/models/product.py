@@ -48,6 +48,7 @@ class Product(db.Model, PersistentBase):
     quantity = db.Column(db.Integer, default=1)
     note = db.Column(db.String(255), nullable=True)  # Field for the note
     is_gift = db.Column(db.Boolean, default=False)
+    purchased = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f"<Product {self.name} id=[{self.id}] wishlist[{self.wishlist_id}]>"
@@ -66,6 +67,7 @@ class Product(db.Model, PersistentBase):
             "quantity": self.quantity,
             "note": self.note,
             "is_gift": self.is_gift if self.is_gift is not None else False,
+            "purchased": self.purchased if self.purchased is not None else False,
         }
 
     def deserialize(self, data: dict) -> None:
@@ -83,8 +85,6 @@ class Product(db.Model, PersistentBase):
             self.quantity = data["quantity"]
             self.note = data.get("note", None)
             self.is_gift = data.get("is_gift", False)
-        except AttributeError as error:
-            raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
             raise DataValidationError(
                 "Invalid Product: missing " + error.args[0]
