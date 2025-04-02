@@ -27,7 +27,7 @@ logger = logging.getLogger("flask.app")
 ######################################################################
 #  PRODUCT   M O D E L
 ######################################################################
-class Product(db.Model, PersistentBase):
+class Product(db.Model, PersistentBase):  # pylint: disable=too-many-instance-attributes
     """
     Class that represents an Product
     """
