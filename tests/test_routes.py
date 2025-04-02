@@ -1260,3 +1260,44 @@ class TestWishlistService(TestCase):
         )
         verify_data = verify_resp.get_json()
         self.assertNotEqual(verify_data.get("purchased"), True)
+
+    def test_get_all_products(self):
+        """It should return all products when no filtering is applied."""
+        response = self.app.get(f"/wishlists/{self.wishlist.id}/products")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        # Expecting JSON to have key "products"
+        self.assertEqual(len(data["products"]), 3)
+
+    def test_filter_products_min_price(self):
+        """It should return only products with price >= specified min_price."""
+        response = self.app.get(f"/wishlists/{self.wishlist.id}/products?min_price=25")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        # Only product with price 30.00 should be returned
+        self.assertEqual(len(data["products"]), 1)
+        self.assertEqual(data["products"][0]["price"], 30.00)
+
+    def test_filter_products_max_price(self):
+        """It should return only products with price <= specified max_price."""
+        response = self.app.get(f"/wishlists/{self.wishlist.id}/products?max_price=15")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        # Only product with price 10.00 should be returned
+        self.assertEqual(len(data["products"]), 1)
+        self.assertEqual(data["products"][0]["price"], 10.00)
+
+    def test_filter_products_min_max_price(self):
+        """It should return only products within the specified price range."""
+        response = self.app.get(f"/wishlists/{self.wishlist.id}/products?min_price=15&max_price=25")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        # Only product with price 20.00 should be returned
+        self.assertEqual(len(data["products"]), 1)
+        self.assertEqual(data["products"][0]["price"], 20.00)
+
+    def test_invalid_price_query(self):
+        """It should return 400 Bad Request when price query parameters are invalid."""
+        response = self.app.get(f"/wishlists/{self.wishlist.id}/products?min_price=invalid")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Invalid min_price", response.get_data(as_text=True))
