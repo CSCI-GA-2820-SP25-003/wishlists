@@ -196,28 +196,31 @@ def update_wishlists(wishlist_id):
 ######################################################################
 @app.route("/wishlists/<int:wishlist_id>/products", methods=["GET"])
 def list_products(wishlist_id):
-    """Returns all of the Products for a Wishlist, optionally filtered by product_name"""
+    """Returns all of the Products for a Wishlist, optionally filtered by product_name, min_price, and max_price"""
     app.logger.info("Request for all Products for Wishlist with id: %s", wishlist_id)
-
+    # Find wishlist or return 404
     wishlist = Wishlist.find(wishlist_id)
     if not wishlist:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Wishlist with id '{wishlist_id}' could not be found.",
-        )
-
+        abort(status.HTTP_404_NOT_FOUND, f"Wishlist with id '{wishlist_id}' could not be found.")
+    # Extract and prepare filter parameters
     product_name = request.args.get("product_name", "").strip().lower()
-
-    if product_name:
-        results = [
-            product.serialize()
-            for product in wishlist.products
-            if product_name in product.name.lower()
-        ]
-    else:
-        results = [product.serialize() for product in wishlist.products]
-
-    return jsonify(results), status.HTTP_200_OK
+    # Convert and validate price parameters in one pass with defaults
+    try:
+        min_price = float(request.args.get("min_price")) if request.args.get("min_price") else None
+    except ValueError:
+        abort(status.HTTP_400_BAD_REQUEST, "Invalid min_price parameter. Must be a valid number.")
+    try:
+        max_price = float(request.args.get("max_price")) if request.args.get("max_price") else None
+    except ValueError:
+        abort(status.HTTP_400_BAD_REQUEST, "Invalid max_price parameter. Must be a valid number.")
+    # Get all products and apply filters in one step
+    products = wishlist.products
+    products = [p for p in products if
+                (not product_name or product_name in p.name.lower()) and
+                (min_price is None or p.price >= min_price) and
+                (max_price is None or p.price <= max_price)]
+    # Return serialized results
+    return jsonify([product.serialize() for product in products]), status.HTTP_200_OK
 
 
 ######################################################################
