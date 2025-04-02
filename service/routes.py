@@ -196,10 +196,9 @@ def update_wishlists(wishlist_id):
 ######################################################################
 @app.route("/wishlists/<int:wishlist_id>/products", methods=["GET"])
 def list_products(wishlist_id):
-    """Returns all of the Products for an Wishlist"""
+    """Returns all of the Products for a Wishlist, optionally filtered by product_name"""
     app.logger.info("Request for all Products for Wishlist with id: %s", wishlist_id)
 
-    # See if the wishlist exists and abort if it doesn't
     wishlist = Wishlist.find(wishlist_id)
     if not wishlist:
         abort(
@@ -207,8 +206,16 @@ def list_products(wishlist_id):
             f"Wishlist with id '{wishlist_id}' could not be found.",
         )
 
-    # Get the products for the wishlist
-    results = [product.serialize() for product in wishlist.products]
+    product_name = request.args.get("product_name", "").strip().lower()
+
+    if product_name:
+        results = [
+            product.serialize()
+            for product in wishlist.products
+            if product_name in product.name.lower()
+        ]
+    else:
+        results = [product.serialize() for product in wishlist.products]
 
     return jsonify(results), status.HTTP_200_OK
 
