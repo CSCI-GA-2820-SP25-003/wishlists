@@ -316,4 +316,4 @@ class TestProduct(TestCase):
 
         # Case 5: Invalid price value should return 400 Bad Request
         response = self.client.get(f"/wishlists/{wishlist.id}/products?min_price=invalid")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400) 

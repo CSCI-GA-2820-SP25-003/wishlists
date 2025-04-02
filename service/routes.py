@@ -575,7 +575,6 @@ def list_products_filter(wishlist_id):
     # Return the filtered products in a JSON object
     return jsonify({"products": results}), status.HTTP_200_OK
 
-
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################

@@ -1301,3 +1301,4 @@ class TestWishlistService(TestCase):
         response = self.app.get(f"/wishlists/{self.wishlist.id}/products?min_price=invalid")
         self.assertEqual(response.status_code, 400)
         self.assertIn("Invalid min_price", response.get_data(as_text=True))
+        
