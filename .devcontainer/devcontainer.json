@@ -67,6 +67,7 @@
 				"ms-azuretools.vscode-docker",
                 "redhat.vscode-openshift-connector",
 				"inercia.vscode-k3d",
+				"alexkrechik.cucumberautocomplete",
 				"ms-kubernetes-tools.vscode-kubernetes-tools",
 				"streetsidesoftware.code-spell-checker",
 				"bbenoist.vagrant"
