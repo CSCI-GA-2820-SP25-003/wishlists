@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wishlists
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wishlists
+  template:
+    metadata:
+      labels:
+        app: wishlists
+    spec:
+      containers:
+        - name: wishlists
+          image: cluster-registry:5000/wishlists:1.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URI
+              value: postgresql+psycopg://postgres:pgs3cr3t@postgres:5432/wishlists
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "250m"
+
