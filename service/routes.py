@@ -21,15 +21,17 @@ This service implements a REST API that allows you to Create, Read, Update
 and Delete Wishlist
 """
 
+from decimal import Decimal, InvalidOperation
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
 from service.models import Wishlist, Product
 from service.common import status  # HTTP Status Codes
 
-
 ######################################################################
 # GET HEALTH CHECK
 ######################################################################
+
+
 @app.route("/health")
 def health_check():
     """Let them know our heart is still beating"""
@@ -205,13 +207,14 @@ def list_products(wishlist_id):
     # Extract and prepare filter parameters
     product_name = request.args.get("product_name", "").strip().lower()
     # Convert and validate price parameters in one pass with defaults
+
     try:
-        min_price = float(request.args.get("min_price")) if request.args.get("min_price") else None
-    except ValueError:
+        min_price = Decimal(request.args.get("min_price")) if request.args.get("min_price") else None
+    except (ValueError, TypeError, InvalidOperation):
         abort(status.HTTP_400_BAD_REQUEST, "Invalid min_price parameter. Must be a valid number.")
     try:
-        max_price = float(request.args.get("max_price")) if request.args.get("max_price") else None
-    except ValueError:
+        max_price = Decimal(request.args.get("max_price")) if request.args.get("max_price") else None
+    except (ValueError, TypeError, InvalidOperation):
         abort(status.HTTP_400_BAD_REQUEST, "Invalid max_price parameter. Must be a valid number.")
     # Get all products and apply filters in one step
     products = wishlist.products
@@ -268,95 +271,6 @@ def create_products(wishlist_id):
 # UPDATE A PRODUCT
 ######################################################################
 
-
-# @app.route("/wishlists/<wishlist_id>/products/<product_id>", methods=["PATCH", "PUT"])
-# def update_product(wishlist_id, product_id):
-#     """
-#     Update a product in a wishlist
-
-#     This RESTful endpoint updates a product with the fields provided.
-#     Supports both PATCH (partial update) and PUT (full update).
-#     """
-
-#     app.logger.info(
-#         "Request to update Product %s in Wishlist %s", product_id, wishlist_id
-#     )
-#     check_content_type("application/json")
-
-#     # Find product and verify it exists
-#     product = Product.find(product_id)
-#     if not product:
-#         abort(
-#             status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found."
-#         )
-
-#     # Verify product belongs to wishlist (convert to strings for comparison)
-#     if str(product.wishlist_id) != str(wishlist_id):
-#         return (
-#             jsonify(
-#                 status=status.HTTP_403_FORBIDDEN,
-#                 error="Forbidden",
-#                 message="Product does not belong to the specified wishlist.",
-#             ),
-#             status.HTTP_403_FORBIDDEN,
-#         )
-
-#     # Get and validate request data
-#     data = request.get_json()
-#     if not data:
-#         abort(
-#             status.HTTP_400_BAD_REQUEST,
-#             "Request must contain at least one valid field to update",
-#         )
-
-#     if request.method == "PATCH":
-#         # PATCH: Update only specific allowed fields
-#         allowed_fields = {"note", "is_gift", "quantity"}
-
-#         # Check if any allowed fields are in the request
-#         if not any(field in data for field in allowed_fields):
-#             abort(
-#                 status.HTTP_400_BAD_REQUEST,
-#                 "PATCH request must include note, is_gift, or quantity fields",
-#             )
-
-#         # Update only provided fields
-#         for field in allowed_fields:
-#             if field in data:
-#                 setattr(product, field, data[field])
-
-#         # Handle quantity update
-#         if "quantity" in data:
-#             return update_product_quantity(product, data)
-
-#     else:  # PUT: Full update
-#         # Validate required fields
-#         required_fields = ["name", "price", "description"]
-#         missing = [f for f in required_fields if f not in data]
-#         if missing:
-#             abort(
-#                 status.HTTP_400_BAD_REQUEST,
-#                 f"Missing required fields: {', '.join(missing)}",
-#             )
-
-#         # Update required fields
-#         product.name = data["name"]
-#         product.price = data["price"]
-#         product.description = data["description"]
-
-#         # Update optional fields
-#         product.note = data.get("note", product.note)
-#         product.is_gift = data.get(
-#             "is_gift", False if product.is_gift is None else product.is_gift
-#         )
-
-#     # Save changes
-#     product.update()
-
-#     # # Ensure is_gift is not None in response
-#     product_dict = product.serialize()
-
-#     return jsonify(product_dict), status.HTTP_200_OK
 
 @app.route("/wishlists/<wishlist_id>/products/<product_id>", methods=["PATCH", "PUT"])
 def update_product(wishlist_id, product_id):
