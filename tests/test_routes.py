@@ -1300,7 +1300,7 @@ class TestWishlistService(TestCase):
         # Create a wishlist
         wishlist = self._create_wishlists(1)[0]
         # Create products with different prices
-        prices = [10.00, 20.00, 30.00]
+        prices = [Decimal('10.00'), Decimal('20.00'), Decimal('30.00')]
         for i, price in enumerate(prices):
             product = ProductFactory(name=f"Product {i+1}", price=price)
             self.client.post(
@@ -1317,7 +1317,7 @@ class TestWishlistService(TestCase):
         results = resp.get_json()
         # Only product with price 30.00 should be returned
         self.assertEqual(len(results), 1)
-        self.assertEqual(float(results[0]["price"]), 30.00)
+        self.assertEqual(Decimal(results[0]["price"]), Decimal('30.00'))
         self.assertEqual(results[0]["name"], "Product 3")
 
     def test_filter_products_max_price(self):
@@ -1325,7 +1325,7 @@ class TestWishlistService(TestCase):
         # Create a wishlist
         wishlist = self._create_wishlists(1)[0]
         # Create products with different prices
-        prices = [10.00, 20.00, 30.00]
+        prices = [Decimal('10.00'), Decimal('20.00'), Decimal('30.00')]
         for i, price in enumerate(prices):
             product = ProductFactory(name=f"Product {i+1}", price=price)
             self.client.post(
@@ -1342,7 +1342,7 @@ class TestWishlistService(TestCase):
         results = resp.get_json()
         # Only product with price 10.00 should be returned
         self.assertEqual(len(results), 1)
-        self.assertEqual(float(results[0]["price"]), 10.00)
+        self.assertEqual(Decimal(results[0]["price"]), Decimal('10.00'))
         self.assertEqual(results[0]["name"], "Product 1")
 
     def test_filter_products_min_max_price(self):
@@ -1350,7 +1350,7 @@ class TestWishlistService(TestCase):
         # Create a wishlist
         wishlist = self._create_wishlists(1)[0]
         # Create products with different prices
-        prices = [10.00, 20.00, 30.00]
+        prices = [Decimal('10.00'), Decimal('20.00'), Decimal('30.00')]
         for i, price in enumerate(prices):
             product = ProductFactory(name=f"Product {i+1}", price=price)
             self.client.post(
@@ -1368,7 +1368,7 @@ class TestWishlistService(TestCase):
         results = resp.get_json()
         # Only product with price 20.00 should be returned
         self.assertEqual(len(results), 1)
-        self.assertEqual(float(results[0]["price"]), 20.00)
+        self.assertEqual(Decimal(results[0]["price"]), Decimal('20.00'))
         self.assertEqual(results[0]["name"], "Product 2")
 
     def test_invalid_price_query(self):
