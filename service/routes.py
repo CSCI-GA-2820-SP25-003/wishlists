@@ -41,19 +41,10 @@ def health_check():
 ######################################################################
 # GET INDEX
 ######################################################################
-
-
 @app.route("/")
 def index():
-    """Root URL response"""
-    return (
-        jsonify(
-            name="Wishlist REST API Service",
-            version="1.0",
-            paths=url_for("list_wishlists", _external=True),
-        ),
-        status.HTTP_200_OK,
-    )
+    """Base URL for our service"""
+    return app.send_static_file("index.html")
 
 
 ######################################################################
@@ -203,25 +194,45 @@ def list_products(wishlist_id):
     # Find wishlist or return 404
     wishlist = Wishlist.find(wishlist_id)
     if not wishlist:
-        abort(status.HTTP_404_NOT_FOUND, f"Wishlist with id '{wishlist_id}' could not be found.")
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Wishlist with id '{wishlist_id}' could not be found.",
+        )
     # Extract and prepare filter parameters
     product_name = request.args.get("product_name", "").strip().lower()
     # Convert and validate price parameters in one pass with defaults
 
     try:
-        min_price = Decimal(request.args.get("min_price")) if request.args.get("min_price") else None
+        min_price = (
+            Decimal(request.args.get("min_price"))
+            if request.args.get("min_price")
+            else None
+        )
     except (ValueError, TypeError, InvalidOperation):
-        abort(status.HTTP_400_BAD_REQUEST, "Invalid min_price parameter. Must be a valid number.")
+        abort(
+            status.HTTP_400_BAD_REQUEST,
+            "Invalid min_price parameter. Must be a valid number.",
+        )
     try:
-        max_price = Decimal(request.args.get("max_price")) if request.args.get("max_price") else None
+        max_price = (
+            Decimal(request.args.get("max_price"))
+            if request.args.get("max_price")
+            else None
+        )
     except (ValueError, TypeError, InvalidOperation):
-        abort(status.HTTP_400_BAD_REQUEST, "Invalid max_price parameter. Must be a valid number.")
+        abort(
+            status.HTTP_400_BAD_REQUEST,
+            "Invalid max_price parameter. Must be a valid number.",
+        )
     # Get all products and apply filters in one step
     products = wishlist.products
-    products = [p for p in products if
-                (not product_name or product_name in p.name.lower()) and
-                (min_price is None or p.price >= min_price) and
-                (max_price is None or p.price <= max_price)]
+    products = [
+        p
+        for p in products
+        if (not product_name or product_name in p.name.lower())
+        and (min_price is None or p.price >= min_price)
+        and (max_price is None or p.price <= max_price)
+    ]
     # Return serialized results
     return jsonify([product.serialize() for product in products]), status.HTTP_200_OK
 
@@ -363,6 +374,7 @@ def update_product(wishlist_id, product_id):
     product_dict = product.serialize()
 
     return jsonify(product_dict), status.HTTP_200_OK
+
 
 ######################################################################
 # RETRIEVE A PRODUCT FROM WISHLIST
