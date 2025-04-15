@@ -19,10 +19,10 @@ def step_impl(context):
     assert context.resp.status_code == 200
 
 
-@when('I visit the "home page"')
-def step_impl(context):
-    context.resp = requests.get(context.base_url + "/", timeout=WAIT_TIMEOUT)
-    assert context.resp.status_code == 200
+@when('I visit the "Home Page"')
+def step_impl(context: Any) -> None:
+    """Make a call to the base URL"""
+    context.driver.get(context.base_url)
 
 
 @then('I should see "{message}" And I should not see "{text_string}"')
