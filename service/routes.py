@@ -41,10 +41,19 @@ def health_check():
 ######################################################################
 # GET INDEX
 ######################################################################
+
+
 @app.route("/")
 def index():
-    """Base URL for our service"""
-    return app.send_static_file("index.html")
+    """Root URL response"""
+    return (
+        jsonify(
+            name="Wishlist REST API Service",
+            version="1.0",
+            paths=url_for("list_wishlists", _external=True),
+        ),
+        status.HTTP_200_OK,
+    )
 
 
 ######################################################################
