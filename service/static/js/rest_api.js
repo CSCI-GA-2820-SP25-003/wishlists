@@ -168,6 +168,25 @@ $(function () {
       });
     });
 
+    $("#delete-product-btn").click(function () {
+
+      console.log("delete product button clicked");
+      const id = $("#product_id").val();
+      const wishlist_id = $("#wishlist_id").val();
+      
+      $.ajax({
+        url: `/wishlists/${wishlist_id}/products/${id}`,
+        type: "DELETE",
+        success: () => {
+          flash_message("Product Deleted!");
+          clear_form("#product_form");
+        },
+        error: res => flash_message(res.responseJSON ? res.responseJSON.message : "Error deleting product")
+      });
+    })
+
+
+
     $("#search_wishlist-btn").click(function () {
       const name = $("#wishlist_name").val();
       let url = "/wishlists";
