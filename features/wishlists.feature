@@ -45,3 +45,22 @@ Scenario: List all Wishlists
     Then I should see the message "Wishlist Created!"
     And I press the "List Wishlists" button
     Then I should see "Wishlist 1" in the results
+
+Scenario: Add a Product to a Wishlist
+  When I visit the "Home Page"
+  And I set the "Name" to "Tech Gadgets"
+  And I set the "User ID" to "1234"
+  And I press the "Create Wishlist" button
+  Then I should see the message "Wishlist Created!"
+
+  When I select the first wishlist from the dropdown
+  And I set the product "Name" to "Bluetooth Speaker"
+  And I set the product "Price" to "59.99"
+  And I set the product "Quantity" to "2"
+  And I set the product "Description" to "Portable speaker with bass boost"
+  And I set the product "Note" to "Gift for friend"
+  And I check the "Is Gift" box
+  And I check the "Purchased" box
+  And I press the "Add Product" button
+  Then I should see the message "Product Created!"
+

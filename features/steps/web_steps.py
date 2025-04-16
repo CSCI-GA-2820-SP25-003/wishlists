@@ -64,10 +64,12 @@ def step_impl(context: Any) -> None:
     # Uncomment next line to take a screenshot of the web page
     # save_screenshot(context, 'Home Page')
 
+
 @then('I should see "{message}" in the title')
 def step_impl(context: Any, message: str) -> None:
     """Check the document title for a message"""
     assert message in context.driver.title
+
 
 @then('I should not see "{text_string}"')
 def step_impl(context: Any, text_string: str) -> None:
@@ -127,21 +129,27 @@ def step_impl(context: Any, button: str) -> None:
     button_id = button.lower().replace(" ", "_") + "-btn"
     context.driver.find_element(By.ID, button_id).click()
 
+
 @then('I should see "{name}" in the results')
 def step_impl(context, name):
     # 1️⃣ wait until the tbody is present
     WebDriverWait(context.driver, 5).until(
-        expected_conditions.presence_of_element_located((By.ID, "wishlist-results-body"))
+        expected_conditions.presence_of_element_located(
+            (By.ID, "wishlist-results-body")
+        )
     )
 
     # 2️⃣ wait until the requested wishlist name shows up
     WebDriverWait(context.driver, 5).until(
-        expected_conditions.text_to_be_present_in_element((By.ID, "wishlist-results-body"), name)
+        expected_conditions.text_to_be_present_in_element(
+            (By.ID, "wishlist-results-body"), name
+        )
     )
 
     # 3️⃣ final assertion (defensive – keeps the nice traceback if it still fails)
     body_text = context.driver.find_element(*(By.ID, "wishlist-results-body")).text
     assert name in body_text
+
 
 @then('I should see the message "{message}"')
 def step_impl(context: Any, message: str) -> None:
@@ -172,3 +180,17 @@ def step_impl(context: Any, text_string: str, element_name: str) -> None:
         )
     )
     assert found
+
+
+@when("I select the first wishlist from the dropdown")
+def step_impl(context: Any) -> None:
+    select = Select(context.driver.find_element(By.ID, "select_wishlist_dropdown"))
+    select.select_by_index(1)
+
+
+@when('I set the product "{element_name}" to "{text_string}"')
+def step_impl(context: Any, element_name: str, text_string: str) -> None:
+    element_id = element_name.lower().replace(" ", "_")
+    element = context.driver.find_element(By.ID, element_id)
+    element.clear()
+    element.send_keys(text_string)
