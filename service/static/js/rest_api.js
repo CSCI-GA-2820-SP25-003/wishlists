@@ -170,10 +170,9 @@ $(function () {
 
     $("#delete-product-btn").click(function () {
 
-      console.log("delete product button clicked");
       const id = $("#product_id").val();
       const wishlist_id = $("#wishlist_id").val();
-      
+
       $.ajax({
         url: `/wishlists/${wishlist_id}/products/${id}`,
         type: "DELETE",
