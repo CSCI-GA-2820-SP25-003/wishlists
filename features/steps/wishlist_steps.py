@@ -22,6 +22,7 @@ Steps file for Wishlist.feature
 For information on Waiting until elements are present in the HTML see:
     https://selenium-python.readthedocs.io/waits.html
 """
+import ast
 import requests
 from compare3 import expect
 from behave import given  # pylint: disable=no-name-in-module
@@ -50,11 +51,12 @@ def step_impl(context):
         expect(context.resp.status_code).equal_to(HTTP_204_NO_CONTENT)
 
     # load the database with new wishlists
-    for row in context.table:
-        payload = {
-            "name": row["name"],
-            "userid": row["userid"],
-            "products": row["products"],
-        }
+        for row in context.table:
+            products = ast.literal_eval(row["products"]) if row["products"] else []
+            payload = {
+                "name": row["name"],
+                "userid": row["userid"],
+                "products": products,
+            }
         context.resp = requests.post(rest_endpoint, json=payload, timeout=WAIT_TIMEOUT)
         expect(context.resp.status_code).equal_to(HTTP_201_CREATED)
