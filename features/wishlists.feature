@@ -70,3 +70,12 @@ Scenario: Delete a Wishlist
   When I paste the "ID" field
   And I press the "Delete Wishlist" button
   Then I should see the message "Wishlist Deleted!"
+
+Scenario: Search for a wishlist by name
+  When I visit the "Home Page"
+  And I set the "Name" to "Birthday Gifts"
+  And I set the "User ID" to "1234"
+  And I press the "Create Wishlist" button
+  Then I should see the message "Wishlist Created!"
+  When I press the "Search Wishlist" button
+  Then I should see "Birthday Gifts" in the results

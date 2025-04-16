@@ -167,6 +167,16 @@ $(function () {
         error: res => flash_message(res.responseJSON ? res.responseJSON.message : "Error deleting wishlist")
       });
     });
+
+    $("#search_wishlist-btn").click(function () {
+      const name = $("#wishlist_name").val();
+      let url = "/wishlists";
+      if (name) url += `?name=${encodeURIComponent(name)}`;
+  
+      $.get(url)
+        .done(renderWishlistResults)
+        .fail(res => flash_message(res.responseJSON ? res.responseJSON.message : "Error searching wishlists"));
+    });
     
   
     // ****************************************
