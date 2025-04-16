@@ -152,6 +152,7 @@ def step_impl(context: Any, text_string: str, element_name: str) -> None:
     )
     assert found
 
+
 @when('I create a product with name "{name}", price "{price}", and category "{category}"')
 def step_impl(context, name, price, category):
     context.driver.find_element(By.ID, "product_name").clear()

@@ -102,6 +102,7 @@ $(function () {
 
 })
 
+
 // ****************************************
 // Create a Product
 // ****************************************
@@ -119,7 +120,7 @@ $(function () {
         };
 
         $("#flash_message").empty();
-    
+
         let ajax = $.ajax({
             type: "POST",
             url: "/products",
