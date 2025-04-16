@@ -39,24 +39,24 @@ WAIT_TIMEOUT = 60
 def step_impl(context):
     """Delete all Wishlists and load new ones"""
 
-    # Get a list all of the wishlists
     rest_endpoint = f"{context.base_url}/wishlists"
+
+    # Delete all existing wishlists
     context.resp = requests.get(rest_endpoint, timeout=WAIT_TIMEOUT)
     expect(context.resp.status_code).equal_to(HTTP_200_OK)
-    # and delete them one by one
     for wishlist in context.resp.json():
         context.resp = requests.delete(
             f"{rest_endpoint}/{wishlist['id']}", timeout=WAIT_TIMEOUT
         )
         expect(context.resp.status_code).equal_to(HTTP_204_NO_CONTENT)
 
-    # load the database with new wishlists
-        for row in context.table:
-            products = ast.literal_eval(row["products"]) if row["products"] else []
-            payload = {
-                "name": row["name"],
-                "userid": row["userid"],
-                "products": products,
-            }
+    # Now load the new wishlists from the table
+    for row in context.table:
+        products = ast.literal_eval(row["products"]) if row["products"] else []
+        payload = {
+            "name": row["name"],
+            "userid": row["userid"],
+            "products": products,
+        }
         context.resp = requests.post(rest_endpoint, json=payload, timeout=WAIT_TIMEOUT)
         expect(context.resp.status_code).equal_to(HTTP_201_CREATED)
