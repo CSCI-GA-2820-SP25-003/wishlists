@@ -58,3 +58,15 @@ Scenario: Update the name of an existing wishlist
   And I press the "Update Wishlist" button
   Then I should see the message "Wishlist Updated!"
   And I should see "Updated Wishlist" in the "Name" field
+
+Scenario: Delete a Wishlist
+  When I visit the "Home Page"
+  And I set the "Name" to "Old Wishlist"
+  And I set the "User ID" to "2001"
+  And I press the "Create Wishlist" button
+  Then I should see the message "Wishlist Created!"
+  When I copy the "ID" field
+  And I press the "Clear Wishlist" button
+  When I paste the "ID" field
+  And I press the "Delete Wishlist" button
+  Then I should see the message "Wishlist Deleted!"
