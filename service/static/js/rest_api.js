@@ -49,7 +49,7 @@ $(function () {
     function update_wishlist_form(res) {
       $("#wishlist_id").val(res.id);
       $("#wishlist_name").val(res.name);
-      $("#wishlist_userid").val(res.userid);
+      $("#wishlist_user_id").val(res.userid);
     }
   
     function update_product_form(res) {
@@ -63,14 +63,6 @@ $(function () {
       $("#product_purchased").prop("checked", res.purchased);
     }
     
-    // Define the missing functions
-    function clear_wishlist_form() {
-      clear_form("#wishlist_form");
-    }
-    
-    function clear_product_form() {
-      clear_form("#product_form");
-    }
 
         // Function to populate the wishlist dropdown from a list of wishlists
     function populateWishlistDropdown(wishlists) {
@@ -114,7 +106,55 @@ $(function () {
         }
       });
     });
+
+    $("#retrieve_wishlist-btn").click(function () {
+      const id = $("#wishlist_id").val();
+      $.get(`/wishlists/${id}`)
+        .done(res => {
+          update_wishlist_form(res);
+          renderWishlistResults([res]);
+          flash_message("Wishlist Retrieved!");
+        })
+        .fail(res => flash_message(res.responseJSON ? res.responseJSON.message : "Error retrieving wishlist"));
+    });
+      // Populate dropdown when listing all wishlists
+    $("#list_wishlists-btn").click(function () {
+        $.get("/wishlists")
+        .done(wishlists => {
+            renderWishlistResults(wishlists);
+            populateWishlistDropdown(wishlists);  // Add this line
+        })
+        .fail(res => flash_message(res.responseJSON ? res.responseJSON.message : "Error listing wishlists"));
+    });
+    
+    // Also populate dropdown when the page loads
+    $(document).ready(function() {
+        // Fetch all wishlists and populate the dropdown
+        $.get("/wishlists")
+        .done(populateWishlistDropdown)
+        .fail(res => console.log("Could not load wishlists for dropdown"));
+    });
+
+    $("#update_wishlist-btn").click(function () {
+      const id = $("#wishlist_id").val();
+      const data = { name: $("#wishlist_name").val(), userid: $("#wishlist_userid").val() };
   
+      $.ajax({
+        url: `/wishlists/${id}`,
+        type: "PUT",
+        contentType: "application/json",
+        data: JSON.stringify(data),
+        success: res => {
+          update_wishlist_form(res);
+          flash_message("Wishlist Updated!");
+            // Update the wishlist name in the dropdown
+            $(`#select_wishlist_dropdown option[value="${id}"]`).text(res.name);
+        },
+        
+        error: res => flash_message(res.responseJSON ? res.responseJSON.message : "Error updating wishlist")
+      });
+    });
+    
   
     // ****************************************
     // CRUD for Products
