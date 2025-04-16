@@ -8,14 +8,14 @@ $(function () {
   function update_form_data(res) {
       $("#wishlist_id").val(res.id);
       $("#wishlist_name").val(res.name);
-      $("#wishlist_userid").val(res.userid);
+      $("#wishlist_user_id").val(res.userid);
       $("#wishlist_products").val([]);
   }
 
   /// Clears all form fields
   function clear_form_data() {
       $("#wishlist_name").val("");
-      $("#wishlist_userid").val("");
+      $("#wishlist_user_id").val("");
       $("#wishlist_products").val("");
   }
 
@@ -32,12 +32,12 @@ $(function () {
   $("#create-btn").click(function () {
 
       let name = $("#wishlist_name").val();
-      let userid = $("#wishlist_userid").val();
+      let user_id = $("#wishlist_user_id").val();
       let products = [];
 
       let data = {
           "name": name,
-          "userid": userid,
+          "userid": user_id,
           "products": products,
       };
 
