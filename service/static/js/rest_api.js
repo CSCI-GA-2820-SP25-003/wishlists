@@ -191,6 +191,57 @@ $(function () {
         .done(renderProductResults)
         .fail(res => flash_message(res.responseJSON ? res.responseJSON.message : "Error listing products"));
     });
+
+    // ****************************************
+    // Update a Product
+    // ****************************************
+
+    $("#update-product-btn").click(function () {
+
+        let product_id = $("#product_id").val();
+        let wishlist_id = $("#product_wishlist_id").val();
+        let name = $("#product_name").val();
+        let price = $("#product_price").val();
+        let quantity = $("#product_quantity").val() == "true";
+        let min_price = $("#product_min_price").val();
+        let max_price = $("#product_max_price").val();
+        let description = $("#product_description").val();
+        let note = $("#product_note").val();
+        let is_gift = $("#product_is_gift").val();
+        let purchased = $("#product_purchased").val();
+
+        let data = {
+            "name": name,
+            "wishlist_id": wishlist_id,
+            "price": price,
+            "quantity": quantity,
+            // "min_price": min_price,
+            // "max_price": max_price,
+            "description": description,
+            "note": note,
+            "is_gift": is_gift,
+            "purchased": purchased
+        };
+
+        $("#flash_message").empty();
+
+        let ajax = $.ajax({
+                type: "PUT",
+                url: `/products/${product_id}`,
+                contentType: "application/json",
+                data: JSON.stringify(data)
+            })
+
+        ajax.done(function(res){
+            update_product_form(res)
+            flash_message("Success")
+        });
+
+        ajax.fail(function(res){
+            flash_message(res.responseJSON.message)
+        });
+
+    });
   
     // ****************************************
     // SEARCH FEATURES

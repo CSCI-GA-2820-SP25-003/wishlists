@@ -10,6 +10,12 @@ Background:
     | Home Decor      | "1002" | []       |
     | Office Stuff    | "1003" | []       |
     | Travel Outfits  | "1004" | []       |
+  
+  Given the following products
+    | name            | price | quantity | min_price | max_price | description   | note   | is_gift | purchased |
+    | Air Fryer       | 9000  | 1        | 1         | 10000     | air fryer     | note 1 | True    | False     |
+    | Banana Slicer   | 10    | 24       | 1         | 100       | banana slicer | note 2 | False   | False     |
+
 
 
 Scenario: The server is running
@@ -79,3 +85,25 @@ Scenario: Search for a wishlist by name
   Then I should see the message "Wishlist Created!"
   When I press the "Search Wishlist" button
   Then I should see "Birthday Gifts" in the results
+
+Scenario: Update a Product
+    When I visit the "Home Page"
+    And I set the "Name" to "Air Fryer"
+    # And I press the "Search" button
+    # Then I should see the message "Success"
+    # And I should see "Air Fryer" in the "Name" field
+    # And I should see "9000" in the "Price" field
+    # When I change "Name" to "Fryer Air"
+    # And I press the "Update" button
+    # Then I should see the message "Success"
+    # When I copy the "ID" field
+    # And I press the "Clear" button
+    # And I paste the "ID" field
+    # And I press the "Retrieve" button
+    # Then I should see the message "Success"
+    # And I should see "Fryer Air" in the "Name" field
+    # When I press the "Clear" button
+    # And I press the "Search" button
+    # Then I should see the message "Success"
+    # And I should see "Fryer Air" in the results
+    # And I should not see "fido" in the results
