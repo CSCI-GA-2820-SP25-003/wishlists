@@ -154,6 +154,19 @@ $(function () {
         error: res => flash_message(res.responseJSON ? res.responseJSON.message : "Error updating wishlist")
       });
     });
+
+    $("#delete_wishlist-btn").click(function () {
+      const id = $("#wishlist_id").val();
+      $.ajax({
+        url: `/wishlists/${id}`,
+        type: "DELETE",
+        success: () => {
+          flash_message("Wishlist Deleted!");
+          clear_form("#wishlist_form");
+        },
+        error: res => flash_message(res.responseJSON ? res.responseJSON.message : "Error deleting wishlist")
+      });
+    });
     
   
     // ****************************************
