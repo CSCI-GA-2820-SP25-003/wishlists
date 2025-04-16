@@ -151,3 +151,27 @@ def step_impl(context: Any, text_string: str, element_name: str) -> None:
         )
     )
     assert found
+
+@when('I create a product with name "{name}", price "{price}", and category "{category}"')
+def step_impl(context, name, price, category):
+    context.driver.find_element(By.ID, "product_name").clear()
+    context.driver.find_element(By.ID, "product_name").send_keys(name)
+
+    context.driver.find_element(By.ID, "product_price").clear()
+    context.driver.find_element(By.ID, "product_price").send_keys(price)
+
+    context.driver.find_element(By.ID, "product_category").clear()
+    context.driver.find_element(By.ID, "product_category").send_keys(category)
+
+    context.driver.find_element(By.ID, "create-btn").click()
+
+
+@then('I should see "{text_string}" in the product "{element_name}" field')
+def step_impl(context: Any, text_string: str, element_name: str) -> None:
+    element_id = "product_" + element_name.lower().replace(" ", "_")
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.text_to_be_present_in_element_value(
+            (By.ID, element_id), text_string
+        )
+    )
+    assert found

@@ -101,3 +101,38 @@ $(function () {
   });
 
 })
+
+// ****************************************
+// Create a Product
+// ****************************************
+
+    $("#create-btn").click(function () {
+
+        let name = $("#product_name").val();
+        let price = $("#product_price").val();
+        let category = $("#product_category").val();
+
+        let data = {
+            "name": name,
+            "price": price,
+            "category": category
+        };
+
+        $("#flash_message").empty();
+    
+        let ajax = $.ajax({
+            type: "POST",
+            url: "/products",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+        });
+
+        ajax.done(function(res){
+            update_form_data(res);
+            flash_message("Success");
+        });
+
+        ajax.fail(function(res){
+            flash_message(res.responseJSON.message);
+        });
+    });
