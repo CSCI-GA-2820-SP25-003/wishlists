@@ -524,16 +524,20 @@ class TestWishlistService(TestCase):
         data = resp.get_json()
         self.assertEqual(len(data), 0)
 
-    def test_update_wishlist_with_missing_data(self):
-        """It should not update a wishlist with missing data"""
+    def test_update_wishlist_missing_name(self):
+        """It should return 400 if 'name' field is missing during update"""
+        # First, create a wishlist
         wishlist = self._create_wishlists(1)[0]
-        # Missing userid which is required
-        resp = self.client.put(
+
+        # Attempt to update it with no 'name'
+        response = self.client.put(
             f"{BASE_URL}/{wishlist.id}",
-            json={"name": "Just a name"},
-            content_type="application/json",
+            json={},  # Missing 'name'
+            content_type="application/json"
         )
-        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Missing required field: name", response.get_data(as_text=True))
 
     def test_get_wishlists_default_pagination(self):
         """It should get the first 10 wishlists by default"""

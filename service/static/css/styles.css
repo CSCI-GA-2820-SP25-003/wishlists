@@ -1,0 +1,29 @@
+body {
+    background-color: #f8f9fa;
+  }
+  
+  .card {
+    border-radius: 1rem;
+  }
+  
+  .card-header {
+    border-radius: 1rem 1rem 0 0;
+  }
+  
+  #flash_message {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #198754;
+  }
+  
+  .form-check-label {
+    margin-right: 2rem;
+  }
+  
+  textarea.form-control {
+    resize: vertical;
+    min-height: 60px;
+  }
+  
+
+

@@ -151,31 +151,21 @@ def list_wishlists():
 
 @app.route("/wishlists/<int:wishlist_id>", methods=["PUT"])
 def update_wishlists(wishlist_id):
-    """
-    Update a Wishlist
-
-    This endpoint will update a Wishlist based the body that is posted
-    """
-    app.logger.info("Request to Update a wishlist with id [%s]", wishlist_id)
+    """Update a Wishlist (only 'name' is allowed to change)"""
+    app.logger.info("Request to update Wishlist with id [%s]", wishlist_id)
     check_content_type("application/json")
 
-    # Attempt to find the Wishlist and abort if not found
     wishlist = Wishlist.find(wishlist_id)
     if not wishlist:
-        abort(
-            status.HTTP_404_NOT_FOUND,
-            f"Wishlist with id '{wishlist_id}' was not found.",
-        )
+        abort(status.HTTP_404_NOT_FOUND, f"Wishlist with id '{wishlist_id}' was not found.")
 
-    # Update the Wishlist with the new data
     data = request.get_json()
-    app.logger.info("Processing: %s", data)
-    wishlist.deserialize(data)
+    if "name" not in data:
+        abort(status.HTTP_400_BAD_REQUEST, "Missing required field: name")
 
-    # Save the updates to the database
+    wishlist.name = data["name"]
     wishlist.update()
 
-    app.logger.info("Wishlist with ID: %d updated.", wishlist.id)
     return jsonify(wishlist.serialize()), status.HTTP_200_OK
 
 
