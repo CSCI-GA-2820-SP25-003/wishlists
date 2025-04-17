@@ -127,6 +127,15 @@ def step_impl(context: Any, button: str) -> None:
     button_id = button.lower().replace(" ", "_") + "-btn"
     context.driver.find_element(By.ID, button_id).click()
 
+@when('I select "{value}" from the "Wishlist Dropdown"')
+def step_impl(context: Any, value: str) -> None:
+    if value == "{clipboard}" or value == "clipboard":
+        value = context.clipboard
+    select = Select(context.driver.find_element(By.ID, "select_wishlist_dropdown"))
+    select.select_by_value(value)
+
+
+
 @then('I should see "{name}" in the results')
 def step_impl(context, name):
     # 1️⃣ wait until the tbody is present

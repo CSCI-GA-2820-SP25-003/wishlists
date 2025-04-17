@@ -1,4 +1,4 @@
-Feature: The wishlist service back-end 
+Feature: The wishlist service back-end
   As a Online Shop Owner
   I need a RESTful wishlist service
   So that I can keep track of all my wishlists
@@ -10,7 +10,7 @@ Background:
     | Home Decor      | "1002" | []       |
     | Office Stuff    | "1003" | []       |
     | Travel Outfits  | "1004" | []       |
-  
+
   Given the following products
     | name            | price | quantity | min_price | max_price | description   | note   | is_gift | purchased |
     | Air Fryer       | 9000  | 1        | 1         | 10000     | air fryer     | note 1 | True    | False     |
@@ -85,6 +85,21 @@ Scenario: Search for a wishlist by name
   Then I should see the message "Wishlist Created!"
   When I press the "Search Wishlist" button
   Then I should see "Birthday Gifts" in the results
+
+Scenario: Retrieve a product from a wishlist
+  When I visit the "Home Page"
+  And I set the "Name" to "Test Wishlist"
+  And I set the "User ID" to "1"
+  And I press the "Create Wishlist" button
+  Then I should see the message "Wishlist Created!"
+  When I copy the "ID" field
+  And I press the "List Wishlists" button
+  And I select "{clipboard}" from the "Wishlist Dropdown"
+  And I set the "ID" to "1"
+  And I press the "Retrieve-Product" button
+  Then I should see the message "Product Retrieved!"
+  And I should see "Basketball" in the "Name" field
+
 
 Scenario: Update a Product
     When I visit the "Home Page"
