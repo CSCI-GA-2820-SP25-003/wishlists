@@ -311,6 +311,27 @@ $(function () {
         });
     });
 
+    $("#filter-product-btn").click(function () {
+      const wishlist_id = $("#select_wishlist_dropdown").val();
+      const product_name = $("#filter_product_name").val().toLowerCase();
+
+      if (!wishlist_id) {
+        return flash_message("Select a wishlist first");
+      }
+
+      $.get(`/wishlists/${wishlist_id}/products`, { product_name })
+        .done(renderProductResults)
+        .fail(res =>
+          flash_message(res.responseJSON ? res.responseJSON.message : "Error filtering products")
+        );
+    });
+
+    $("#clear-filter-btn").click(function () {
+      $("#filter_product_name").val("");
+      $("#list_products-btn").click(); // re-list all products
+    });
+
+
     // ****************************************
     // Update a Product
     // ****************************************

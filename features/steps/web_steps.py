@@ -182,6 +182,15 @@ def step_impl(context: Any, text_string: str, element_name: str) -> None:
     )
     assert found
 
+
+@then('I should see "{text}" in the product results')
+def step_impl(context, text):
+    WebDriverWait(context.driver, 5).until(
+        expected_conditions.presence_of_element_located((By.ID, "product-results-body"))
+    )
+    body = context.driver.find_element(By.ID, "product-results-body").text
+    assert text in body
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Add Product to Wishlist Steps
 # ──────────────────────────────────────────────────────────────────────────────
@@ -214,3 +223,4 @@ def step_impl(context, name):
     )
     body = context.driver.find_element(By.ID, "product-results-body").text
     assert name in body
+

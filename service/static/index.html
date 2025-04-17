@@ -45,82 +45,85 @@
       </div>
     </div>
 
-    <!-- Product Card -->
-    <div class="card shadow-lg mb-5">
-      <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">Manage Products</h4>
-        <select id="select_wishlist_dropdown" class="form-select w-auto bg-light">
-          <option selected disabled>Select Wishlist</option>
-        </select>
+<!-- Product Card -->
+<div class="card shadow-lg mb-5">
+  <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+    <h4 class="mb-0">Manage Products</h4>
+    <select id="select_wishlist_dropdown" class="form-select w-auto bg-light">
+      <option selected disabled>Select Wishlist</option>
+    </select>
+  </div>
+  <div class="card-body">
+
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label for="filter_product_name" class="form-label">Filter by Name</label>
+        <input type="text" class="form-control" id="filter_product_name" placeholder="e.g. Laptop">
       </div>
-      <div class="row mt-3">
-        <div class="col-md-4">
-          <label for="filter_product_name" class="form-label">Filter by Name</label>
-          <input type="text" class="form-control" id="filter_product_name" placeholder="e.g. Laptop">
-        </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <button type="button" class="btn btn-outline-primary w-100" id="filter-product-btn">Filter</button>
-        </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <button type="button" class="btn btn-outline-secondary w-100" id="clear-filter-btn">Clear Filter</button>
-        </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="button" class="btn btn-outline-primary w-100" id="filter-product-btn">Filter</button>
       </div>
-      <div class="card-body">
-        <form class="row g-3">
-          <div class="col-md-3">
-            <label for="id" class="form-label">Product ID</label>
-            <input type="text" class="form-control" id="product_id" placeholder="Product ID">
-          </div>
-          <div class="col-md-3">
-            <label for="name" class="form-label">Name</label>
-            <input type="text" class="form-control" id="name" placeholder="Product name" />
-          </div>
-          <div class="col-md-3">
-            <label for="price" class="form-label">Price</label>
-            <input type="number" class="form-control" id="price" placeholder="99.99" />
-          </div>
-          <div class="col-md-3">
-            <label for="quantity" class="form-label">Quantity</label>
-            <input type="number" class="form-control" id="quantity" value="1" min="1" />
-          </div>
-          <div class="col-md-3">
-            <label for="min_price" class="form-label">Min Price</label>
-            <input type="number" class="form-control" id="min_price" placeholder="e.g. 10.00" min="0" />
-          </div>
-          <div class="col-md-3">
-            <label for="max_price" class="form-label">Max Price</label>
-            <input type="number" class="form-control" id="max_price" placeholder="e.g. 100.00" min="0" />
-          </div>
-          <div class="col-12">
-            <label for="description" class="form-label">Description</label>
-            <textarea class="form-control" id="description" placeholder="Product details"></textarea>
-          </div>
-          <div class="col-12">
-            <label for="note" class="form-label">Note</label>
-            <input type="text" class="form-control" id="note" placeholder="Special notes..." />
-          </div>
-          <div class="col-12 d-flex gap-4">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="is_gift" />
-              <label class="form-check-label" for="is_gift">Is Gift</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="purchased" />
-              <label class="form-check-label" for="purchased">Purchased</label>
-            </div>
-          </div>
-          <div class="col-12 d-flex flex-wrap gap-2 justify-content-end mt-3">
-            <button type="button" class="btn btn-success" id="create-product-btn">Add Product</button>
-            <button type="button" class="btn btn-info text-white" id="retrieve-product-btn">Retrieve</button>
-            <button type="button" class="btn btn-warning" id="update-product-btn">Update</button>
-            <button type="button" class="btn btn-danger" id="delete-product-btn">Delete</button>
-            <button type="button" class="btn btn-secondary" id="list-products-btn">List Products</button>
-            <button type="button" class="btn btn-primary" id="search-product-btn">Search Product</button>
-            <button type="button" class="btn btn-light" id="clear-product-btn">Clear</button>
-          </div>
-        </form>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="button" class="btn btn-outline-secondary w-100" id="clear-filter-btn">Clear Filter</button>
       </div>
     </div>
+
+    <form class="row g-3">
+      <div class="col-md-3">
+        <label for="id" class="form-label">Product ID</label>
+        <input type="text" class="form-control" id="product_id" placeholder="Product ID">
+      </div>
+      <div class="col-md-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name" placeholder="Product name" />
+      </div>
+      <div class="col-md-3">
+        <label for="price" class="form-label">Price</label>
+        <input type="number" class="form-control" id="price" placeholder="99.99" />
+      </div>
+      <div class="col-md-3">
+        <label for="quantity" class="form-label">Quantity</label>
+        <input type="number" class="form-control" id="quantity" value="1" min="1" />
+      </div>
+      <div class="col-md-3">
+        <label for="min_price" class="form-label">Min Price</label>
+        <input type="number" class="form-control" id="min_price" placeholder="e.g. 10.00" min="0" />
+      </div>
+      <div class="col-md-3">
+        <label for="max_price" class="form-label">Max Price</label>
+        <input type="number" class="form-control" id="max_price" placeholder="e.g. 100.00" min="0" />
+      </div>
+      <div class="col-12">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control" id="description" placeholder="Product details"></textarea>
+      </div>
+      <div class="col-12">
+        <label for="note" class="form-label">Note</label>
+        <input type="text" class="form-control" id="note" placeholder="Special notes..." />
+      </div>
+      <div class="col-12 d-flex gap-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="is_gift" />
+          <label class="form-check-label" for="is_gift">Is Gift</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="purchased" />
+          <label class="form-check-label" for="purchased">Purchased</label>
+        </div>
+      </div>
+      <div class="col-12 d-flex flex-wrap gap-2 justify-content-end mt-3">
+        <button type="button" class="btn btn-success" id="create-product-btn">Add Product</button>
+        <button type="button" class="btn btn-info text-white" id="retrieve-product-btn">Retrieve</button>
+        <button type="button" class="btn btn-warning" id="update-product-btn">Update</button>
+        <button type="button" class="btn btn-danger" id="delete-product-btn">Delete</button>
+        <button type="button" class="btn btn-secondary" id="list-products-btn">List Products</button>
+        <button type="button" class="btn btn-primary" id="search-product-btn">Search Product</button>
+        <button type="button" class="btn btn-light" id="clear-product-btn">Clear</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 
     <!-- Wishlist Results Table -->
     <div class="card mt-5 shadow">
