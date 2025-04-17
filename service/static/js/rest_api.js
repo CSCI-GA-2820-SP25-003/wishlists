@@ -24,6 +24,12 @@ $(function () {
     function renderProductResults(products) {
       const body = $("#product-results-body");
       body.empty();
+      
+      if (products.length === 0) {
+        body.append(`<tr><td colspan="9">No products available.</td></tr>`);
+        return;
+      }
+      
       products.forEach(p => {
         body.append(`<tr><td>${p.id}</td><td>${p.wishlist_id}</td><td>${p.name}</td><td>${p.price}</td><td>${p.quantity}</td><td>${p.is_gift}</td><td>${p.purchased}</td><td>${p.description}</td><td>${p.note}</td></tr>`);
       });
@@ -131,8 +137,52 @@ $(function () {
     $(document).ready(function() {
         // Fetch all wishlists and populate the dropdown
         $.get("/wishlists")
-        .done(populateWishlistDropdown)
-        .fail(res => console.log("Could not load wishlists for dropdown"));
+        .done(wishlists => {
+            populateWishlistDropdown(wishlists);
+            
+            // If we have wishlists, get products from all wishlists
+            if (wishlists && wishlists.length > 0) {
+                let allProducts = [];
+                let fetchedCount = 0;
+                
+                // Select the first wishlist in the dropdown
+                const firstWishlistId = wishlists[0].id;
+                $("#select_wishlist_dropdown").val(firstWishlistId);
+                
+                // Iterate through each wishlist and get all products
+                wishlists.forEach(wishlist => {
+                    $.get(`/wishlists/${wishlist.id}/products`)
+                    .done(products => {
+                        // Add products to our collection
+                        allProducts = allProducts.concat(products);
+                        fetchedCount++;
+                        
+                        // When we've fetched from all wishlists, render the results
+                        if (fetchedCount === wishlists.length) {
+                            renderProductResults(allProducts);
+                            flash_message("All products loaded successfully");
+                        }
+                    })
+                    .fail(res => {
+                        fetchedCount++;
+                        console.log(`Error loading products from wishlist ${wishlist.id}`);
+                        
+                        // Even if some fail, render what we have when all requests complete
+                        if (fetchedCount === wishlists.length) {
+                            renderProductResults(allProducts);
+                            flash_message("Products loaded with some errors");
+                        }
+                    });
+                });
+            } else {
+                // No wishlists available
+                renderProductResults([]);
+            }
+        })
+        .fail(res => {
+            console.log("Could not load wishlists for dropdown");
+            renderProductResults([]);
+        });
     });
 
     $("#update_wishlist-btn").click(function () {
@@ -168,6 +218,24 @@ $(function () {
       });
     });
 
+    $("#delete-product-btn").click(function () {
+
+      const id = $("#product_id").val();
+      const wishlist_id = $("#wishlist_id").val();
+
+      $.ajax({
+        url: `/wishlists/${wishlist_id}/products/${id}`,
+        type: "DELETE",
+        success: () => {
+          flash_message("Product Deleted!");
+          clear_form("#product_form");
+        },
+        error: res => flash_message(res.responseJSON ? res.responseJSON.message : "Error deleting product")
+      });
+    })
+
+
+
     $("#search_wishlist-btn").click(function () {
       const name = $("#wishlist_name").val();
       let url = "/wishlists";
@@ -182,6 +250,38 @@ $(function () {
     // ****************************************
     // CRUD for Products
     // ****************************************
+    
+    // Adding Product to Wishlist
+    $("#create-product-btn").click(function () {
+      const wishlist_id = $("#select_wishlist_dropdown").val();
+      if (!wishlist_id) return flash_message("Select a wishlist first");
+
+      const data = {
+        wishlist_id: parseInt(wishlist_id),  
+        name: $("#name").val(),
+        price: parseFloat($("#price").val()),
+        quantity: parseInt($("#quantity").val()),
+        description: $("#description").val(),
+        note: $("#note").val(),
+        is_gift: $("#is_gift").is(":checked"),
+        purchased: $("#purchased").is(":checked")
+      };
+      
+
+      $.ajax({
+        url: `/wishlists/${wishlist_id}/products`,
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(data),
+        success: function (res) {
+          flash_message("Product Added to Wishlist!");
+          renderProductResults([res]);
+        },
+        error: function (res) {
+          flash_message(res.responseJSON ? res.responseJSON.message : "Error adding product to wishlist");
+        }
+      });
+    });
 
     $("#list_products-btn").click(function () {
       const wishlist_id = $("#select_wishlist_dropdown").val();
