@@ -181,3 +181,36 @@ def step_impl(context: Any, text_string: str, element_name: str) -> None:
         )
     )
     assert found
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Add Product to Wishlist Steps
+# ──────────────────────────────────────────────────────────────────────────────
+
+PRODUCT_ID_PREFIX = "product_"
+
+@when('I set the product "{field}" to "{value}"')  # Line ≈ 240
+def step_impl(context, field):
+    field_id = PRODUCT_ID_PREFIX + field.lower().replace(" ", "_")
+    element = context.driver.find_element(By.ID, field_id)
+    element.clear()
+    element.send_keys(value)
+
+@when('I check the "{checkbox}" product checkbox')  # Line ≈ 247
+def step_impl(context, checkbox):
+    checkbox_id = PRODUCT_ID_PREFIX + checkbox.lower().replace(" ", "_")
+    checkbox_element = context.driver.find_element(By.ID, checkbox_id)
+    if not checkbox_element.is_selected():
+        checkbox_element.click()
+
+@then('I should see the product "{name}" in the results')  # Line ≈ 254
+def step_impl(context, name):
+    WebDriverWait(context.driver, 5).until(
+        expected_conditions.presence_of_element_located((By.ID, "product-results-body"))
+    )
+    WebDriverWait(context.driver, 5).until(
+        expected_conditions.text_to_be_present_in_element(
+            (By.ID, "product-results-body"), name
+        )
+    )
+    body = context.driver.find_element(By.ID, "product-results-body").text
+    assert name in body

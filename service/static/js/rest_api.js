@@ -250,6 +250,38 @@ $(function () {
     // ****************************************
     // CRUD for Products
     // ****************************************
+    
+    // Adding Product to Wishlist
+    $("#create-product-btn").click(function () {
+      const wishlist_id = $("#select_wishlist_dropdown").val();
+      if (!wishlist_id) return flash_message("Select a wishlist first");
+
+      const data = {
+        wishlist_id: parseInt(wishlist_id),  
+        name: $("#name").val(),
+        price: parseFloat($("#price").val()),
+        quantity: parseInt($("#quantity").val()),
+        description: $("#description").val(),
+        note: $("#note").val(),
+        is_gift: $("#is_gift").is(":checked"),
+        purchased: $("#purchased").is(":checked")
+      };
+      
+
+      $.ajax({
+        url: `/wishlists/${wishlist_id}/products`,
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(data),
+        success: function (res) {
+          flash_message("Product Added to Wishlist!");
+          renderProductResults([res]);
+        },
+        error: function (res) {
+          flash_message(res.responseJSON ? res.responseJSON.message : "Error adding product to wishlist");
+        }
+      });
+    });
 
     $("#list_products-btn").click(function () {
       const wishlist_id = $("#select_wishlist_dropdown").val();
