@@ -88,11 +88,18 @@ Scenario: Search for a wishlist by name
 
 Scenario: Retrieve a product from a wishlist
   When I visit the "Home Page"
-  And I select "1" from the "Wishlist Dropdown"
-  And I set the "Product ID" to "1"
-  And I press the "Retrieve Product" button
+  And I set the "Name" to "Test Wishlist"
+  And I set the "User ID" to "1"
+  And I press the "Create Wishlist" button
+  Then I should see the message "Wishlist Created!"
+  When I copy the "ID" field
+  And I press the "List Wishlists" button
+  And I select "{clipboard}" from the "Wishlist Dropdown"
+  And I set the "ID" to "1"
+  And I press the "Retrieve-Product" button
   Then I should see the message "Product Retrieved!"
   And I should see "Basketball" in the "Name" field
+
 
 Scenario: Update a Product
     When I visit the "Home Page"
