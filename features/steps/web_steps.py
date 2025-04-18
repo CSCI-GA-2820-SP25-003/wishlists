@@ -64,10 +64,12 @@ def step_impl(context: Any) -> None:
     # Uncomment next line to take a screenshot of the web page
     # save_screenshot(context, 'Home Page')
 
+
 @then('I should see "{message}" in the title')
 def step_impl(context: Any, message: str) -> None:
     """Check the document title for a message"""
     assert message in context.driver.title
+
 
 @then('I should not see "{text_string}"')
 def step_impl(context: Any, text_string: str) -> None:
@@ -122,10 +124,19 @@ def step_impl(context: Any, element_name: str) -> None:
 ##################################################################
 
 
+@when('I set the product "{element_name}" to "{text_string}"')
+def step_impl(context: Any, element_name: str, text_string: str) -> None:
+    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
+    element = context.driver.find_element(By.ID, element_id)
+    element.clear()
+    element.send_keys(text_string)
+
+
 @when('I press the "{button}" button')
 def step_impl(context: Any, button: str) -> None:
     button_id = button.lower().replace(" ", "_") + "-btn"
     context.driver.find_element(By.ID, button_id).click()
+
 
 @when('I select "{value}" from the "Wishlist Dropdown"')
 def step_impl(context: Any, value: str) -> None:
@@ -135,22 +146,26 @@ def step_impl(context: Any, value: str) -> None:
     select.select_by_value(value)
 
 
-
 @then('I should see "{name}" in the results')
 def step_impl(context, name):
     # 1️⃣ wait until the tbody is present
     WebDriverWait(context.driver, 5).until(
-        expected_conditions.presence_of_element_located((By.ID, "wishlist-results-body"))
+        expected_conditions.presence_of_element_located(
+            (By.ID, "wishlist-results-body")
+        )
     )
 
     # 2️⃣ wait until the requested wishlist name shows up
     WebDriverWait(context.driver, 5).until(
-        expected_conditions.text_to_be_present_in_element((By.ID, "wishlist-results-body"), name)
+        expected_conditions.text_to_be_present_in_element(
+            (By.ID, "wishlist-results-body"), name
+        )
     )
 
     # 3️⃣ final assertion (defensive – keeps the nice traceback if it still fails)
     body_text = context.driver.find_element(*(By.ID, "wishlist-results-body")).text
     assert name in body_text
+
 
 @then('I should see the message "{message}"')
 def step_impl(context: Any, message: str) -> None:
@@ -191,18 +206,23 @@ def step_impl(context, text):
     body = context.driver.find_element(By.ID, "product-results-body").text
     assert text in body
 
+
+@when('I change "{element_name}" to "{text_string}"')
+def step_impl(context: Any, element_name: str, text_string: str) -> None:
+    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    element.clear()
+    element.send_keys(text_string)
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Add Product to Wishlist Steps
 # ──────────────────────────────────────────────────────────────────────────────
 
 PRODUCT_ID_PREFIX = "product_"
 
-@when('I set the product "{field}" to "{value}"')  # Line ≈ 240
-def step_impl(context, field):
-    field_id = PRODUCT_ID_PREFIX + field.lower().replace(" ", "_")
-    element = context.driver.find_element(By.ID, field_id)
-    element.clear()
-    element.send_keys(value)
 
 @when('I check the "{checkbox}" product checkbox')  # Line ≈ 247
 def step_impl(context, checkbox):
@@ -211,16 +231,60 @@ def step_impl(context, checkbox):
     if not checkbox_element.is_selected():
         checkbox_element.click()
 
+
 @then('I should see the product "{name}" in the results')  # Line ≈ 254
-def step_impl(context, name):
-    WebDriverWait(context.driver, 5).until(
-        expected_conditions.presence_of_element_located((By.ID, "product-results-body"))
-    )
-    WebDriverWait(context.driver, 5).until(
+def step_impl(context: Any, name: str) -> None:
+    # save_screenshot(context, name)
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
         expected_conditions.text_to_be_present_in_element(
             (By.ID, "product-results-body"), name
         )
     )
-    body = context.driver.find_element(By.ID, "product-results-body").text
-    assert name in body
+    assert found
 
+
+@then('I should not see the product "{name}" in the results')
+def step_impl(context: Any, name: str) -> None:
+    element = context.driver.find_element(By.ID, "product-results-body")
+    assert name not in element.text
+
+
+@then('I should see "{text_string}" in the product "{element_name}" field')
+def step_impl(context: Any, text_string: str, element_name: str) -> None:
+    element_id = PRODUCT_ID_PREFIX + element_name.lower().replace(" ", "_")
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.text_to_be_present_in_element_value(
+            (By.ID, element_id), text_string
+        )
+    )
+    assert found
+
+
+@when('I copy the product "{element_name}" field')
+def step_impl(context: Any, element_name: str) -> None:
+    element_id = PRODUCT_ID_PREFIX + element_name.lower().replace(" ", "_")
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    context.clipboard = element.get_attribute("value")
+    logging.info("Clipboard contains: %s", context.clipboard)
+
+
+@when('I paste the product "{element_name}" field')
+def step_impl(context: Any, element_name: str) -> None:
+    element_id = PRODUCT_ID_PREFIX + element_name.lower().replace(" ", "_")
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    element.clear()
+    element.send_keys(context.clipboard)
+
+
+@when('I change the product "{element_name}" to "{text_string}"')
+def step_impl(context: Any, element_name: str, text_string: str) -> None:
+    element_id = PRODUCT_ID_PREFIX + element_name.lower().replace(" ", "_")
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    element.clear()
+    element.send_keys(text_string)
