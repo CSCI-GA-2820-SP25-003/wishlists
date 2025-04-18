@@ -34,6 +34,7 @@ $(function () {
         body.append(`<tr><td>${p.id}</td><td>${p.wishlist_id}</td><td>${p.name}</td><td>${p.price}</td><td>${p.quantity}</td><td>${p.is_gift}</td><td>${p.purchased}</td><td>${p.description}</td><td>${p.note}</td></tr>`);
       });
     }
+
     function clear_wishlist_form() {
         $("#wishlist_name").val("");
         $("#wishlist_user_id").val("");
@@ -318,7 +319,6 @@ $(function () {
       if (!wishlist_id) {
         return flash_message("Select a wishlist first");
       }
-
       $.get(`/wishlists/${wishlist_id}/products`, { product_name })
         .done(renderProductResults)
         .fail(res =>
@@ -336,7 +336,7 @@ $(function () {
     // Update a Product
     // ****************************************
 
-    $("#update-product-btn").click(function () {
+    $("#update_product-btn").click(function () {
 
         let product_id = $("#product_id").val();
         let wishlist_id = $("#product_wishlist_id").val();
@@ -367,7 +367,7 @@ $(function () {
 
         let ajax = $.ajax({
                 type: "PUT",
-                url: `/products/${product_id}`,
+                url: `/wishlists/${wishlist_id}/products/${product_id}`,
                 contentType: "application/json",
                 data: JSON.stringify(data)
             })
