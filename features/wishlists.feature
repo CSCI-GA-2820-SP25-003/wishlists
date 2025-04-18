@@ -62,8 +62,8 @@ Scenario: Update the name of an existing wishlist
   When I paste the "ID" field
   And I set the "Name" to "Updated Wishlist"
   And I press the "Update Wishlist" button
-  # Then I should see the message "Wishlist Updated!"
-  # And I should see "Updated Wishlist" in the "Name" field
+  Then I should see the message "Wishlist Updated!"
+  And I should see "Updated Wishlist" in the "Name" field
 
 Scenario: Delete a Wishlist
   When I visit the "Home Page"
