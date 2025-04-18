@@ -293,7 +293,7 @@ $(function () {
         .fail(res => flash_message(res.responseJSON ? res.responseJSON.message : "Error listing products"));
     });
 
-    $("#retrieve-product-btn").click(function () {
+    $("#retrieve_product-btn").click(function () {
       const wishlist_id = $("#select_wishlist_dropdown").val();
       const product_id = $("#product_id").val();
 
@@ -336,15 +336,33 @@ $(function () {
     // Update a Product
     // ****************************************
 
+    // $("#update_wishlist-btn").click(function () {
+    //   const id = $("#wishlist_id").val();
+    //   const data = { name: $("#wishlist_name").val(), userid: $("#wishlist_userid").val() };
+
+    //   $.ajax({
+    //     url: `/wishlists/${id}`,
+    //     type: "PUT",
+    //     contentType: "application/json",
+    //     data: JSON.stringify(data),
+    //     success: res => {
+    //       update_wishlist_form(res);
+    //       flash_message("Wishlist Updated!");
+    //         // Update the wishlist name in the dropdown
+    //         $(`#select_wishlist_dropdown option[value="${id}"]`).text(res.name);
+    //     },
+
+    //     error: res => flash_message(res.responseJSON ? res.responseJSON.message : "Error updating wishlist")
+    //   });
+    // });
+
     $("#update_product-btn").click(function () {
 
         let product_id = $("#product_id").val();
-        let wishlist_id = $("#product_wishlist_id").val();
+        let wishlist_id = $("#select_wishlist_dropdown").val();
         let name = $("#product_name").val();
         let price = $("#product_price").val();
-        let quantity = $("#product_quantity").val() == "true";
-        let min_price = $("#product_min_price").val();
-        let max_price = $("#product_max_price").val();
+        let quantity = $("#product_quantity").val();
         let description = $("#product_description").val();
         let note = $("#product_note").val();
         let is_gift = $("#product_is_gift").val();
@@ -355,8 +373,6 @@ $(function () {
             "wishlist_id": wishlist_id,
             "price": price,
             "quantity": quantity,
-            // "min_price": min_price,
-            // "max_price": max_price,
             "description": description,
             "note": note,
             "is_gift": is_gift,
@@ -365,28 +381,42 @@ $(function () {
 
         $("#flash_message").empty();
 
+        let path = `/wishlists/${wishlist_id}/products/${product_id}`;
+
         let ajax = $.ajax({
-                type: "PUT",
-                url: `/wishlists/${wishlist_id}/products/${product_id}`,
-                contentType: "application/json",
-                data: JSON.stringify(data)
-            })
-
-        ajax.done(function(res){
-            update_product_form(res)
-            flash_message("Success")
+            type: "PUT",
+            url: path,
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: res => {
+              update_product_form(res);
+              flash_message("Product Updated!");
+            },
+    
+            error: res => flash_message(res.responseJSON ? res.responseJSON.message + " " + path : "Error updating product")
         });
-
-        ajax.fail(function(res){
-            flash_message(res.responseJSON.message)
-        });
-
     });
 
     // ****************************************
     // SEARCH FEATURES
     // ****************************************
+    $("#search_product-btn").click(function () {
+      const wishlist_id = $("#select_wishlist_dropdown").val();
+      const product_name = $("#product_name").val().toLowerCase();
 
+      if (!wishlist_id) {
+        return flash_message("Select a wishlist first");
+      }
+      $.get(`/wishlists/${wishlist_id}/products`, { product_name })
+        .done(res => {
+          update_product_form(res[0]);
+          renderProductResults(res);
+          flash_message("All products loaded successfully")
+        })
+        .fail(res =>
+          flash_message(res.responseJSON ? res.responseJSON.message : "Error searching products")
+        );
+    });
 
     // ****************************************
     // Clear the form
@@ -398,7 +428,7 @@ $(function () {
         $("#flash_message").empty();
     });
 
-    $("#clear-product-btn").click(function () {
+    $("#clear_product-btn").click(function () {
         clear_product_form();
         $("#flash_message").empty();
     });

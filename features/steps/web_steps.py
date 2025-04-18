@@ -124,6 +124,14 @@ def step_impl(context: Any, element_name: str) -> None:
 ##################################################################
 
 
+@when('I set the product "{element_name}" to "{text_string}"')
+def step_impl(context: Any, element_name: str, text_string: str) -> None:
+    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
+    element = context.driver.find_element(By.ID, element_id)
+    element.clear()
+    element.send_keys(text_string)
+
+
 @when('I press the "{button}" button')
 def step_impl(context: Any, button: str) -> None:
     button_id = button.lower().replace(" ", "_") + "-btn"
@@ -216,14 +224,6 @@ def step_impl(context: Any, element_name: str, text_string: str) -> None:
 PRODUCT_ID_PREFIX = "product_"
 
 
-@when('I set the product "{field}" to "{value}"')  # Line ≈ 240
-def step_impl(context, field, value):
-    field_id = PRODUCT_ID_PREFIX + field.lower().replace(" ", "_")
-    element = context.driver.find_element(By.ID, field_id)
-    element.clear()
-    element.send_keys(value)
-
-
 @when('I check the "{checkbox}" product checkbox')  # Line ≈ 247
 def step_impl(context, checkbox):
     checkbox_id = PRODUCT_ID_PREFIX + checkbox.lower().replace(" ", "_")
@@ -233,20 +233,58 @@ def step_impl(context, checkbox):
 
 
 @then('I should see the product "{name}" in the results')  # Line ≈ 254
-def step_impl(context, name):
-    WebDriverWait(context.driver, 5).until(
-        expected_conditions.presence_of_element_located((By.ID, "product-results-body"))
-    )
-    WebDriverWait(context.driver, 5).until(
+def step_impl(context: Any, name: str) -> None:
+    # save_screenshot(context, name)
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
         expected_conditions.text_to_be_present_in_element(
             (By.ID, "product-results-body"), name
         )
     )
-    body = context.driver.find_element(By.ID, "product-results-body").text
-    assert name in body
+    assert found
 
 
-@then('I should not see "{name}" in the results')
+@then('I should not see the product "{name}" in the results')
 def step_impl(context: Any, name: str) -> None:
-    element = context.driver.find_element(By.ID, "search_results")
+    element = context.driver.find_element(By.ID, "product-results-body")
     assert name not in element.text
+
+
+@then('I should see "{text_string}" in the product "{element_name}" field')
+def step_impl(context: Any, text_string: str, element_name: str) -> None:
+    element_id = PRODUCT_ID_PREFIX + element_name.lower().replace(" ", "_")
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.text_to_be_present_in_element_value(
+            (By.ID, element_id), text_string
+        )
+    )
+    assert found
+
+
+@when('I copy the product "{element_name}" field')
+def step_impl(context: Any, element_name: str) -> None:
+    element_id = PRODUCT_ID_PREFIX + element_name.lower().replace(" ", "_")
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    context.clipboard = element.get_attribute("value")
+    logging.info("Clipboard contains: %s", context.clipboard)
+
+
+@when('I paste the product "{element_name}" field')
+def step_impl(context: Any, element_name: str) -> None:
+    element_id = PRODUCT_ID_PREFIX + element_name.lower().replace(" ", "_")
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    element.clear()
+    element.send_keys(context.clipboard)
+
+
+@when('I change the product "{element_name}" to "{text_string}"')
+def step_impl(context: Any, element_name: str, text_string: str) -> None:
+    element_id = PRODUCT_ID_PREFIX + element_name.lower().replace(" ", "_")
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    element.clear()
+    element.send_keys(text_string)
