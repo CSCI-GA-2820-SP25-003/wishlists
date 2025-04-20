@@ -124,14 +124,6 @@ def step_impl(context: Any, element_name: str) -> None:
 ##################################################################
 
 
-@when('I set the product "{element_name}" to "{text_string}"')
-def step_impl(context: Any, element_name: str, text_string: str) -> None:
-    element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
-    element = context.driver.find_element(By.ID, element_id)
-    element.clear()
-    element.send_keys(text_string)
-
-
 @when('I press the "{button}" button')
 def step_impl(context: Any, button: str) -> None:
     button_id = button.lower().replace(" ", "_") + "-btn"
@@ -143,7 +135,7 @@ def step_impl(context: Any, value: str) -> None:
     if value == "{clipboard}" or value == "clipboard":
         value = context.clipboard
     select = Select(context.driver.find_element(By.ID, "select_wishlist_dropdown"))
-    select.select_by_value(value)
+    select.select_by_visible_text(value)
 
 
 @then('I should see "{name}" in the results')
@@ -198,15 +190,6 @@ def step_impl(context: Any, text_string: str, element_name: str) -> None:
     assert found
 
 
-@then('I should see "{text}" in the product results')
-def step_impl(context, text):
-    WebDriverWait(context.driver, 5).until(
-        expected_conditions.presence_of_element_located((By.ID, "product-results-body"))
-    )
-    body = context.driver.find_element(By.ID, "product-results-body").text
-    assert text in body
-
-
 @when('I change "{element_name}" to "{text_string}"')
 def step_impl(context: Any, element_name: str, text_string: str) -> None:
     element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
@@ -222,6 +205,14 @@ def step_impl(context: Any, element_name: str, text_string: str) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 PRODUCT_ID_PREFIX = "product_"
+
+
+@when('I set the product "{element_name}" to "{text_string}"')
+def step_impl(context: Any, element_name: str, text_string: str) -> None:
+    element_id = PRODUCT_ID_PREFIX + element_name.lower().replace(" ", "_")
+    element = context.driver.find_element(By.ID, element_id)
+    element.clear()
+    element.send_keys(text_string)
 
 
 @when('I check the "{checkbox}" product checkbox')  # Line ≈ 247

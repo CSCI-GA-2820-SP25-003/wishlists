@@ -85,29 +85,30 @@ Scenario: Search for a wishlist by name
 
 Scenario: Retrieve a product from a wishlist
   When I visit the "Home Page"
-  And I set the "Name" to "Test Wishlist"
-  And I set the "User ID" to "1"
-  And I press the "Create Wishlist" button
-  Then I should see the message "Wishlist Created!"
-  When I copy the "ID" field
-  And I press the "List Wishlists" button
-  And I select "{clipboard}" from the "Wishlist Dropdown"
-  And I set the "ID" to "1"
+  And I select "Home Decor" from the "Wishlist Dropdown"
+  And I set the product "Name" to "Rope"
+  And I set the product "Price" to "3"
+  And I press the "Create Product" button
+  And I copy the product "ID" field
+  And I press the "Clear Product" button
+  And I paste the product "ID" field
   And I press the "Retrieve Product" button
-  # Then I should see the message "Product Retrieved!"
-  # And I should see "Air Fryer" in the "Name" field
+  Then I should see the message "Product Retrieved!"
+  And I should see "Rope" in the product "Name" field
 
 Scenario: Filter products by name
   When I visit the "Home Page"
-  # And I select "1001" from the "Wishlist Dropdown"
-  # And I press the "List Products" button
-  # And I set the "Filter by Name" to "Mouse"
-  # And I press the "Filter" button
-  # Then I should see "Wireless Mouse" in the product results
+  And I select "Tech Gifts" from the "Wishlist Dropdown"
+  And I press the "List Products" button
+  And I set the product "Filter By Name" to "Air Fryer"
+  And I press the "Filter Product" button
+  Then I should see the product "Air Fryer" in the results
+  And I should not see the product "Banana Slicer" in the results
 
 
 Scenario: Update a Product
     When I visit the "Home Page"
+    And I select "Tech Gifts" from the "Wishlist Dropdown"
     And I set the product "Name" to "Air Fryer"
     And I press the "Search Product" button
     Then I should see the message "All products loaded successfully"
