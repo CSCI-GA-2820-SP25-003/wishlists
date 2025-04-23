@@ -42,7 +42,7 @@ def step_impl(context):
     wishlist_id = context.wishlist_ids[0]
     # print("All wishlist IDs:", context.wishlist_ids)
     # print("Posting to wishlist:", wishlist_id)
-    rest_endpoint = f"{context.base_url}/wishlists/{wishlist_id}/products"
+    rest_endpoint = f"{context.base_url}/api/wishlists/{wishlist_id}/products"
     context.resp = requests.get(rest_endpoint, timeout=WAIT_TIMEOUT)
     expect(context.resp.status_code).equal_to(HTTP_200_OK)
     # and delete them one by one
