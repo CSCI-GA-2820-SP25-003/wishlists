@@ -253,19 +253,19 @@ $(function () {
     // ****************************************
     
     // Adding Product to Wishlist
-    $("#create-product-btn").click(function () {
+    $("#create_product-btn").click(function () {
       const wishlist_id = $("#select_wishlist_dropdown").val();
       if (!wishlist_id) return flash_message("Select a wishlist first");
 
       const data = {
         wishlist_id: parseInt(wishlist_id),  
-        name: $("#name").val(),
-        price: parseFloat($("#price").val()),
-        quantity: parseInt($("#quantity").val()),
-        description: $("#description").val(),
-        note: $("#note").val(),
-        is_gift: $("#is_gift").is(":checked"),
-        purchased: $("#purchased").is(":checked")
+        name: $("#product_name").val(),
+        price: parseFloat($("#product_price").val()),
+        quantity: parseInt($("product_#quantity").val()),
+        description: $("#product_description").val(),
+        note: $("#product_note").val(),
+        is_gift: $("#product_is_gift").is(":checked"),
+        purchased: $("#product_purchased").is(":checked")
       };
       
 
@@ -276,6 +276,7 @@ $(function () {
         data: JSON.stringify(data),
         success: function (res) {
           flash_message("Product Added to Wishlist!");
+          update_product_form(res);
           renderProductResults([res]);
         },
         error: function (res) {
@@ -312,9 +313,9 @@ $(function () {
         });
     });
 
-    $("#filter-product-btn").click(function () {
+    $("#filter_product-btn").click(function () {
       const wishlist_id = $("#select_wishlist_dropdown").val();
-      const product_name = $("#filter_product_name").val().toLowerCase();
+      const product_name = $("#product_filter_by_name").val().toLowerCase();
 
       if (!wishlist_id) {
         return flash_message("Select a wishlist first");
@@ -330,31 +331,6 @@ $(function () {
       $("#filter_product_name").val("");
       $("#list_products-btn").click(); // re-list all products
     });
-
-
-    // ****************************************
-    // Update a Product
-    // ****************************************
-
-    // $("#update_wishlist-btn").click(function () {
-    //   const id = $("#wishlist_id").val();
-    //   const data = { name: $("#wishlist_name").val(), userid: $("#wishlist_userid").val() };
-
-    //   $.ajax({
-    //     url: `/wishlists/${id}`,
-    //     type: "PUT",
-    //     contentType: "application/json",
-    //     data: JSON.stringify(data),
-    //     success: res => {
-    //       update_wishlist_form(res);
-    //       flash_message("Wishlist Updated!");
-    //         // Update the wishlist name in the dropdown
-    //         $(`#select_wishlist_dropdown option[value="${id}"]`).text(res.name);
-    //     },
-
-    //     error: res => flash_message(res.responseJSON ? res.responseJSON.message : "Error updating wishlist")
-    //   });
-    // });
 
     $("#update_product-btn").click(function () {
 
