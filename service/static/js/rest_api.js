@@ -4,14 +4,6 @@ $(function () {
     // ****************************************
 
     // Modify your flash_message function to make the message more visible
-    function flash_message(message) {
-        $("#flash_message").empty();
-        $("#flash_message").append(
-        `<div class="alert alert-success">${message}</div>`
-        );
-        // Make sure the message stays visible long enough for tests to see it
-        $("#flash_message").show();
-    }
 
     function renderWishlistResults(wishlists) {
       const body = $("#wishlist-results-body");
@@ -19,6 +11,15 @@ $(function () {
       wishlists.forEach(w => {
         body.append(`<tr><td>${w.id}</td><td>${w.name}</td><td>${w.userid}</td><td>${w.products.length}</td></tr>`);
       });
+    }
+
+    function flash_message(message) {
+      $("#flash_message").empty();
+      $("#flash_message").append(
+      `<div class="alert alert-success">${message}</div>`
+      );
+      // Make sure the message stays visible long enough for tests to see it
+      $("#flash_message").show();
     }
 
     function renderProductResults(products) {
@@ -41,17 +42,17 @@ $(function () {
       }
 
     function clear_product_form() {
-        $("#product_id").val("");
-        $("#product_name").val("");
-        $("#product_price").val("");
-        $("#product_description").val("");
-        $("#product_quantity").val("1");
-        $("#product_note").val("");
-        $("#product_min_price").val("");
-        $("#product_max_price").val("");
-        $("#product_is_gift").prop("checked", false);
-        $("#product_purchased").prop("checked", false);
-      }
+      $("#product_id").val("");
+      $("#product_name").val("");
+      $("#product_price").val("");
+      $("#product_description").val("");
+      $("#product_quantity").val("1");
+      $("#product_note").val("");
+      $("#product_min_price").val("");
+      $("#product_max_price").val("");
+      $("#is_gift").prop("checked", false);        
+      $("#purchased").prop("checked", false);      
+    }
 
     function update_wishlist_form(res) {
       $("#wishlist_id").val(res.id);
@@ -66,8 +67,8 @@ $(function () {
       $("#product_description").val(res.description);
       $("#product_quantity").val(res.quantity);
       $("#product_note").val(res.note);
-      $("#product_is_gift").prop("checked", res.is_gift);
-      $("#product_purchased").prop("checked", res.purchased);
+      $("#is_gift").prop("checked", res.is_gift);         
+      $("#purchased").prop("checked", res.purchased);    
     }
 
 
@@ -97,7 +98,7 @@ $(function () {
 
       // Fixed post request
       $.ajax({
-        url: "/wishlists",
+        url: "/api/wishlists",
         type: "POST",
         contentType: "application/json",
         data: JSON.stringify(data),
@@ -116,17 +117,17 @@ $(function () {
 
     $("#retrieve_wishlist-btn").click(function () {
       const id = $("#wishlist_id").val();
-      $.get(`/wishlists/${id}`)
+      $.get(`/api/wishlists/${id}`)
         .done(res => {
+          flash_message("Wishlist Retrieved!");
           update_wishlist_form(res);
           renderWishlistResults([res]);
-          flash_message("Wishlist Retrieved!");
         })
         .fail(res => flash_message(res.responseJSON ? res.responseJSON.message : "Error retrieving wishlist"));
     });
       // Populate dropdown when listing all wishlists
     $("#list_wishlists-btn").click(function () {
-        $.get("/wishlists")
+        $.get("/api/wishlists")
         .done(wishlists => {
             renderWishlistResults(wishlists);
             populateWishlistDropdown(wishlists);  // Add this line
@@ -137,7 +138,7 @@ $(function () {
     // Also populate dropdown when the page loads
     $(document).ready(function() {
         // Fetch all wishlists and populate the dropdown
-        $.get("/wishlists")
+        $.get("/api/wishlists")
         .done(wishlists => {
             populateWishlistDropdown(wishlists);
             
@@ -152,7 +153,7 @@ $(function () {
                 
                 // Iterate through each wishlist and get all products
                 wishlists.forEach(wishlist => {
-                    $.get(`/wishlists/${wishlist.id}/products`)
+                    $.get(`/api/wishlists/${wishlist.id}/products`)
                     .done(products => {
                         // Add products to our collection
                         allProducts = allProducts.concat(products);
@@ -160,8 +161,8 @@ $(function () {
                         
                         // When we've fetched from all wishlists, render the results
                         if (fetchedCount === wishlists.length) {
-                            renderProductResults(allProducts);
                             flash_message("All products loaded successfully");
+                            renderProductResults(allProducts);
                         }
                     })
                     .fail(res => {
@@ -191,13 +192,13 @@ $(function () {
       const data = { name: $("#wishlist_name").val(), userid: $("#wishlist_userid").val() };
 
       $.ajax({
-        url: `/wishlists/${id}`,
+        url: `/api/wishlists/${id}`,
         type: "PUT",
         contentType: "application/json",
         data: JSON.stringify(data),
         success: res => {
-          update_wishlist_form(res);
           flash_message("Wishlist Updated!");
+          update_wishlist_form(res);
             // Update the wishlist name in the dropdown
             $(`#select_wishlist_dropdown option[value="${id}"]`).text(res.name);
         },
@@ -209,7 +210,7 @@ $(function () {
     $("#delete_wishlist-btn").click(function () {
       const id = $("#wishlist_id").val();
       $.ajax({
-        url: `/wishlists/${id}`,
+        url: `/api/wishlists/${id}`,
         type: "DELETE",
         success: () => {
           flash_message("Wishlist Deleted!");
@@ -222,10 +223,10 @@ $(function () {
     $("#delete-product-btn").click(function () {
 
       const id = $("#product_id").val();
-      const wishlist_id = $("#wishlist_id").val();
+      const wishlist_id = $("#select_wishlist_dropdown").val();
 
       $.ajax({
-        url: `/wishlists/${wishlist_id}/products/${id}`,
+        url: `/api/wishlists/${wishlist_id}/products/${id}`,
         type: "DELETE",
         success: () => {
           flash_message("Product Deleted!");
@@ -239,7 +240,7 @@ $(function () {
 
     $("#search_wishlist-btn").click(function () {
       const name = $("#wishlist_name").val();
-      let url = "/wishlists";
+      let url = "/api/wishlists";
       if (name) url += `?name=${encodeURIComponent(name)}`;
 
       $.get(url)
@@ -259,18 +260,18 @@ $(function () {
 
       const data = {
         wishlist_id: parseInt(wishlist_id),  
-        name: $("#product_name").val(),
-        price: parseFloat($("#product_price").val()),
-        quantity: parseInt($("product_#quantity").val()),
-        description: $("#product_description").val(),
-        note: $("#product_note").val(),
-        is_gift: $("#product_is_gift").is(":checked"),
-        purchased: $("#product_purchased").is(":checked")
+        name: $("#name").val(),
+        price: parseFloat($("#price").val()),
+        quantity: parseInt($("#quantity").val()),
+        description: $("#description").val(),
+        note: $("#note").val(),
+        is_gift: $("#is_gift").is(":checked"),
+        purchased: $("#purchased").is(":checked")
       };
       
 
       $.ajax({
-        url: `/wishlists/${wishlist_id}/products`,
+        url: `/api/wishlists/${wishlist_id}/products`,
         type: "POST",
         contentType: "application/json",
         data: JSON.stringify(data),
@@ -289,7 +290,7 @@ $(function () {
       const wishlist_id = $("#select_wishlist_dropdown").val();
       if (!wishlist_id) return flash_message("Select a wishlist first");
 
-      $.get(`/wishlists/${wishlist_id}/products`)
+      $.get(`/api/wishlists/${wishlist_id}/products`)
         .done(renderProductResults)
         .fail(res => flash_message(res.responseJSON ? res.responseJSON.message : "Error listing products"));
     });
@@ -302,11 +303,11 @@ $(function () {
         return flash_message("Please select a wishlist and enter a product ID");
       }
 
-      $.get(`/wishlists/${wishlist_id}/products/${product_id}`)
+      $.get(`/api/wishlists/${wishlist_id}/products/${product_id}`)
         .done(res => {
+          flash_message("Product Retrieved!");
           update_product_form(res);
           renderProductResults([res]);
-          flash_message("Product Retrieved!");
         })
         .fail(res => {
           flash_message(res.responseJSON ? res.responseJSON.message : "Error retrieving product");
@@ -315,12 +316,22 @@ $(function () {
 
     $("#filter_product-btn").click(function () {
       const wishlist_id = $("#select_wishlist_dropdown").val();
-      const product_name = $("#product_filter_by_name").val().toLowerCase();
+      const product_name = $("#filter_product_name").val().toLowerCase();
+      const min_price = $("#product_min_price").val();
+      const max_price = $("#product_max_price").val();
+
 
       if (!wishlist_id) {
         return flash_message("Select a wishlist first");
       }
-      $.get(`/wishlists/${wishlist_id}/products`, { product_name })
+    
+      // Build query parameters
+      let params = {};
+      if (product_name) params.product_name = product_name;
+      if (min_price) params.min_price = min_price;
+      if (max_price) params.max_price = max_price;
+    
+      $.get(`/api/wishlists/${wishlist_id}/products`, params)
         .done(renderProductResults)
         .fail(res =>
           flash_message(res.responseJSON ? res.responseJSON.message : "Error filtering products")
@@ -333,44 +344,44 @@ $(function () {
     });
 
     $("#update_product-btn").click(function () {
-
-        let product_id = $("#product_id").val();
-        let wishlist_id = $("#select_wishlist_dropdown").val();
-        let name = $("#product_name").val();
-        let price = $("#product_price").val();
-        let quantity = $("#product_quantity").val();
-        let description = $("#product_description").val();
-        let note = $("#product_note").val();
-        let is_gift = $("#product_is_gift").val();
-        let purchased = $("#product_purchased").val();
-
-        let data = {
-            "name": name,
-            "wishlist_id": wishlist_id,
-            "price": price,
-            "quantity": quantity,
-            "description": description,
-            "note": note,
-            "is_gift": is_gift,
-            "purchased": purchased
-        };
-
-        $("#flash_message").empty();
-
-        let path = `/wishlists/${wishlist_id}/products/${product_id}`;
-
-        let ajax = $.ajax({
-            type: "PUT",
-            url: path,
-            contentType: "application/json",
-            data: JSON.stringify(data),
-            success: res => {
-              update_product_form(res);
-              flash_message("Product Updated!");
-            },
-    
-            error: res => flash_message(res.responseJSON ? res.responseJSON.message + " " + path : "Error updating product")
-        });
+      let product_id = $("#product_id").val();
+      let wishlist_id = $("#select_wishlist_dropdown").val();
+      let name = $("#product_name").val();
+      let price = parseFloat($("#product_price").val());
+      let quantity = parseInt($("#product_quantity").val());      
+      let description = $("#product_description").val();
+      let note = $("#product_note").val();
+      
+      // Use the correct IDs that match your HTML
+      let is_gift = $("#is_gift").is(":checked");
+      let purchased = $("#purchased").is(":checked");
+  
+      let data = {
+          "name": name,
+          "wishlist_id": wishlist_id,
+          "price": price,
+          "quantity": quantity,
+          "description": description,
+          "note": note,
+          "is_gift": is_gift,
+          "purchased": purchased
+      };
+  
+      $("#flash_message").empty();
+  
+      let path = `/api/wishlists/${wishlist_id}/products/${product_id}`;
+  
+      let ajax = $.ajax({
+          type: "PUT",
+          url: path,
+          contentType: "application/json",
+          data: JSON.stringify(data),
+          success: res => {
+            flash_message("Product Updated!");
+            update_product_form(res);
+          },
+          error: res => flash_message(res.responseJSON ? res.responseJSON.message + " " + path : "Error updating product")
+      });
     });
 
     // ****************************************
@@ -383,11 +394,11 @@ $(function () {
       if (!wishlist_id) {
         return flash_message("Select a wishlist first");
       }
-      $.get(`/wishlists/${wishlist_id}/products`, { product_name })
+      $.get(`/api/wishlists/${wishlist_id}/products`, { product_name })
         .done(res => {
+          flash_message("All products loaded successfully")
           update_product_form(res[0]);
           renderProductResults(res);
-          flash_message("All products loaded successfully")
         })
         .fail(res =>
           flash_message(res.responseJSON ? res.responseJSON.message : "Error searching products")

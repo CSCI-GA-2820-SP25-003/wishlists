@@ -152,7 +152,7 @@ class TestWishlist(TestCase):
         self.assertEqual(products[0]["id"], product.id)
         self.assertEqual(products[0]["wishlist_id"], product.wishlist_id)
         self.assertEqual(products[0]["name"], product.name)
-        self.assertEqual(products[0]["price"], product.price)
+        self.assertEqual(products[0]["price"], float(product.price))
         self.assertEqual(products[0]["description"], product.description)
         self.assertEqual(products[0]["quantity"], product.quantity)
 

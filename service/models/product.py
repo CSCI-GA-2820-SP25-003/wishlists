@@ -62,7 +62,7 @@ class Product(db.Model, PersistentBase):  # pylint: disable=too-many-instance-at
             "id": self.id,
             "wishlist_id": self.wishlist_id,
             "name": self.name,
-            "price": self.price,
+            "price": float(self.price),
             "description": self.description,
             "quantity": self.quantity,
             "note": self.note,
