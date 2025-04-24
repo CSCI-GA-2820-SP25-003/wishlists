@@ -365,35 +365,15 @@ class ProductResource(Resource):
         app.logger.info("Request to partially update Product %s in Wishlist %s", product_id, wishlist_id)
         check_content_type("application/json")
 
-        wishlist = Wishlist.find(wishlist_id)
-        if not wishlist:
-            abort(status.HTTP_404_NOT_FOUND, f"Wishlist with id '{wishlist_id}' not found.")
-
-        product = Product.find(product_id)
-        if not product:
-            abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' not found.")
-
-        if product.wishlist_id != wishlist.id:
-            abort(status.HTTP_403_FORBIDDEN, "Product does not belong to the specified wishlist.")
-
         data = request.get_json()
         if not data:
             abort(status.HTTP_400_BAD_REQUEST, "Request must contain data")
 
-        allowed_fields = {"note", "is_gift", "quantity", "purchased"}
-        if not any(f in data for f in allowed_fields):
-            abort(status.HTTP_400_BAD_REQUEST, "PATCH must include note, is_gift, quantity, or purchased")
+        _, product = validate_patch_input(wishlist_id, product_id)
 
-        for field in allowed_fields:
-            if field in data:
-                setattr(product, field, data[field])
-
-        if "quantity" in data:
-            if data["quantity"] == 0:
-                product.delete()
-                return "", status.HTTP_204_NO_CONTENT
-            if not isinstance(data["quantity"], int) or data["quantity"] < 0:
-                abort(status.HTTP_400_BAD_REQUEST, "Quantity must be a non-negative integer")
+        response = apply_patch_fields(product, data)
+        if response:
+            return response
 
         product.update()
         return product.serialize(), status.HTTP_200_OK
@@ -459,3 +439,33 @@ def check_content_type(content_type):
     abort(
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, f"Content-Type must be {content_type}"
     )
+
+
+def validate_patch_input(wishlist_id, product_id):
+    """Validate wishlist and product existence and ownership"""
+    wishlist = Wishlist.find(wishlist_id)
+    if not wishlist:
+        abort(status.HTTP_404_NOT_FOUND, f"Wishlist with id '{wishlist_id}' not found.")
+    product = Product.find(product_id)
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' not found.")
+    if product.wishlist_id != wishlist.id:
+        abort(status.HTTP_403_FORBIDDEN, "Product does not belong to the specified wishlist.")
+    return wishlist, product
+
+
+def apply_patch_fields(product, data):
+    """Apply patch fields to product"""
+    allowed_fields = {"note", "is_gift", "quantity", "purchased"}
+    if not any(f in data for f in allowed_fields):
+        abort(status.HTTP_400_BAD_REQUEST, "PATCH must include note, is_gift, quantity, or purchased")
+    for field in allowed_fields:
+        if field in data:
+            setattr(product, field, data[field])
+    if "quantity" in data:
+        if data["quantity"] == 0:
+            product.delete()
+            return "", status.HTTP_204_NO_CONTENT
+        if not isinstance(data["quantity"], int) or data["quantity"] < 0:
+            abort(status.HTTP_400_BAD_REQUEST, "Quantity must be a non-negative integer")
+    return None

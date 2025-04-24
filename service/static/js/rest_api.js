@@ -68,17 +68,7 @@ $(function () {
       $("#product_quantity").val(res.quantity);
       $("#product_note").val(res.note);
       $("#is_gift").prop("checked", res.is_gift);         
-      $("#purchased").prop("checked", res.purchased);     
-
-      originalProduct = {
-        name: product.name,
-        price: product.price,
-        quantity: product.quantity,
-        description: product.description,
-        note: product.note,
-        is_gift: product.is_gift,
-        purchased: product.purchased,
-      };
+      $("#purchased").prop("checked", res.purchased);    
     }
 
 
@@ -148,7 +138,7 @@ $(function () {
     // Also populate dropdown when the page loads
     $(document).ready(function() {
         // Fetch all wishlists and populate the dropdown
-        $.get("/wishlists")
+        $.get("/api/wishlists")
         .done(wishlists => {
             populateWishlistDropdown(wishlists);
             
@@ -163,7 +153,7 @@ $(function () {
                 
                 // Iterate through each wishlist and get all products
                 wishlists.forEach(wishlist => {
-                    $.get(`/wishlists/${wishlist.id}/products`)
+                    $.get(`/api/wishlists/${wishlist.id}/products`)
                     .done(products => {
                         // Add products to our collection
                         allProducts = allProducts.concat(products);
@@ -327,6 +317,9 @@ $(function () {
     $("#filter_product-btn").click(function () {
       const wishlist_id = $("#select_wishlist_dropdown").val();
       const product_name = $("#filter_product_name").val().toLowerCase();
+      const min_price = $("#product_min_price").val();
+      const max_price = $("#product_max_price").val();
+
 
       if (!wishlist_id) {
         return flash_message("Select a wishlist first");
