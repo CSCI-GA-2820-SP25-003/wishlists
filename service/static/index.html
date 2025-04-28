@@ -9,9 +9,8 @@
   <link rel="stylesheet" href="static/css/styles.css">
 </head>
 <body>
+  <div id="flash_message" class="container mt-3"></div>
   <div class="container py-5">
-
-    <div id="flash_message" class="mb-4"></div>
 
     <!-- Wishlist Card -->
     <div class="card shadow-lg mb-5">
@@ -57,9 +56,17 @@
   <div class="card-body">
 
     <div class="row mb-3">
-      <div class="col-md-4">
-        <label for="product_filter_by_name" class="form-label">Filter by Name</label>
-        <input type="text" class="form-control" id="product_filter_by_name" placeholder="e.g. Laptop">
+      <div class="col-md-3">
+        <label for="filter_product_name" class="form-label">Filter by Name</label>
+        <input type="text" class="form-control" id="filter_product_name" placeholder="e.g. Laptop">
+      </div>
+      <div class="col-md-2">
+        <label for="min_price" class="form-label">Min Price</label>
+        <input type="number" class="form-control" id="product_min_price" placeholder="e.g. 10.00" min="0" />
+      </div>
+      <div class="col-md-2">
+        <label for="max_price" class="form-label">Max Price</label>
+        <input type="number" class="form-control" id="product_max_price" placeholder="e.g. 100.00" min="0" />
       </div>
       <div class="col-md-2 d-flex align-items-end">
         <button type="button" class="btn btn-outline-primary w-100" id="filter_product-btn">Filter</button>
@@ -85,14 +92,6 @@
       <div class="col-md-3">
         <label for="quantity" class="form-label">Quantity</label>
         <input type="number" class="form-control" id="product_quantity" value="1" min="1" />
-      </div>
-      <div class="col-md-3">
-        <label for="min_price" class="form-label">Min Price</label>
-        <input type="number" class="form-control" id="product_min_price" placeholder="e.g. 10.00" min="0" />
-      </div>
-      <div class="col-md-3">
-        <label for="max_price" class="form-label">Max Price</label>
-        <input type="number" class="form-control" id="product_max_price" placeholder="e.g. 100.00" min="0" />
       </div>
       <div class="col-12">
         <label for="description" class="form-label">Description</label>

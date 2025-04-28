@@ -167,7 +167,7 @@ class TestProduct(TestCase):
         self.assertEqual(serial_product["id"], product.id)
         self.assertEqual(serial_product["wishlist_id"], product.wishlist_id)
         self.assertEqual(serial_product["name"], product.name)
-        self.assertEqual(serial_product["price"], product.price)
+        self.assertEqual(serial_product["price"], float(product.price))
         self.assertEqual(serial_product["description"], product.description)
         self.assertEqual(serial_product["quantity"], product.quantity)
 
@@ -179,7 +179,7 @@ class TestProduct(TestCase):
         new_product.deserialize(product.serialize())
         self.assertEqual(new_product.wishlist_id, product.wishlist_id)
         self.assertEqual(new_product.name, product.name)
-        self.assertEqual(new_product.price, product.price)
+        self.assertEqual(new_product.price, float(product.price))
         self.assertEqual(new_product.description, product.description)
         self.assertEqual(new_product.quantity, product.quantity)
 
