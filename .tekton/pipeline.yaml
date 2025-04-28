@@ -1,0 +1,137 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: cd-pipeline
+  namespace: anushka1307-dev
+spec:
+  params:
+    - name: GIT_REPO
+      description: The URL to the git repo
+      type: string
+    - name: GIT_REF
+      description: The reference (branch or ref)
+      type: string
+      default: master
+    - name: IMAGE_NAME
+      description: The image to build
+      type: string
+      default: 'image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/wishlists:latest'
+    - name: BASE_URL
+      description: Public URL for BDD testing
+      type: string
+      default: 'https://wishlists-anushka1307-dev.apps.<your-cluster-domain>/'
+
+  workspaces:
+    - name: pipeline-workspace
+
+  tasks:
+    - name: git-clone
+      taskRef:
+        kind: Task
+        name: git-clone
+      params:
+        - name: url
+          value: $(params.GIT_REPO)
+        - name: revision
+          value: $(params.GIT_REF)
+        - name: submodules
+          value: 'true'
+      workspaces:
+        - name: output
+          workspace: pipeline-workspace
+
+    - name: pylint
+      taskRef:
+        kind: Task
+        name: pylint
+      runAfter:
+        - git-clone
+      params:
+        - name: image
+          value: 'docker.io/python:3.11-slim'
+        - name: path
+          value: service
+        - name: args
+          value: []
+        - name: requirements-file
+          value: requirements.txt
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+
+    - name: pytest-env
+      taskRef:
+        kind: Task
+        name: pytest-env
+      runAfter:
+        - git-clone
+      params:
+        - name: pytest-args
+          value: []
+        - name: secret-name
+          value: postgres-creds
+        - name: secret-key
+          value: database_uri
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+
+    - name: buildah
+      taskRef:
+        kind: Task
+        name: buildah
+      runAfter:
+        - pylint
+        - pytest-env
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE_NAME)
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: .
+        - name: STORAGE_DRIVER
+          value: vfs
+        - name: FORMAT
+          value: oci
+        - name: SKIP_PUSH
+          value: 'false'
+        - name: TLS_VERIFY
+          value: 'true'
+        - name: VERBOSE
+          value: 'false'
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+
+    - name: deploy-image
+      taskRef:
+        kind: Task
+        name: deploy-image
+      runAfter:
+        - buildah
+      params:
+        - name: image-name
+          value: $(params.IMAGE_NAME)
+        - name: manifest-dir
+          value: k8s
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+
+    - name: behave
+      taskRef:
+        kind: Task
+        name: behave
+      runAfter:
+        - deploy-image
+      params:
+        - name: BASE_URL
+          value: $(params.BASE_URL)
+        - name: WAIT_SECONDS
+          value: '60'
+        - name: DRIVER
+          value: chrome
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
