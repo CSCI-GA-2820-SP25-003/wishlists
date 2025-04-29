@@ -127,7 +127,7 @@ spec:
         - deploy-image
       params:
         - name: BASE_URL
-          value: $(params.BASE_URL)
+          value: $(params.base-url)
         - name: WAIT_SECONDS
           value: '60'
         - name: DRIVER
