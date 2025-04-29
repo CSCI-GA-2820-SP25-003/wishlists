@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: wishlists
-          image: cluster-registry:5000/wishlists:1.0
+          image: cluster-registry:5000/wishlists:latest
           ports:
             - containerPort: 8080
           env:
