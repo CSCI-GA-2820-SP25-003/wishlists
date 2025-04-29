@@ -51,6 +51,7 @@ wsgi.py                     - web server gateway interface entry point
 features/
 k8s/
 ├── postgres/
+    ├── postgres-deployment.yaml
 ├── deployment.yaml
 ├── ingress.yaml
 ├── service.yaml
