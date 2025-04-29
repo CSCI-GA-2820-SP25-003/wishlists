@@ -69,8 +69,8 @@ api.add_namespace(wishlists_ns, path="/wishlists")
 create_wishlist_model = wishlists_ns.model(
     "WishlistCreate",
     {
-        "name": fields.String(required=True, description="The name of the Wishlist"),
-        "userid": fields.String(required=True, description="User ID of the Wishlist owner"),
+        "name": fields.String(required=True, description="The name of the Wishlist", example="Birthday Wishlist"),
+        "userid": fields.String(required=True, description="User ID of the Wishlist owner", example="user123"),
     },
 )
 
@@ -78,8 +78,8 @@ wishlist_model = wishlists_ns.inherit(
     "WishlistModel",
     create_wishlist_model,
     {
-        "id": fields.Integer(readOnly=True, description="The unique ID of the Wishlist"),
-        "products": fields.List(fields.Raw, description="List of products in the Wishlist"),
+        "id": fields.Integer(readOnly=True, description="The unique ID of the Wishlist", example=1),
+        "products": fields.List(fields.Raw, description="List of products in the Wishlist", example=[]),
     },
 )
 
@@ -94,13 +94,13 @@ api.add_namespace(products_ns, path="/wishlists/<int:wishlist_id>/products")
 create_product_model = products_ns.model(
     "Product",
     {
-        "name": fields.String(required=True),
-        "price": fields.Float(required=True),
-        "quantity": fields.Integer(required=True),
-        "description": fields.String(required=False),
-        "note": fields.String(required=False),
-        "is_gift": fields.Boolean(required=False),
-        "purchased": fields.Boolean(required=False),
+        "name": fields.String(required=True, example="Toy Car"),
+        "price": fields.Float(required=True, example=19.99),
+        "quantity": fields.Integer(required=True, example=2),
+        "description": fields.String(required=False, example="A nice red toy car"),
+        "note": fields.String(required=False, example="Gift for nephew"),
+        "is_gift": fields.Boolean(required=False, example=True),
+        "purchased": fields.Boolean(required=False, example=False),
     },
 )
 
@@ -108,18 +108,18 @@ product_model = products_ns.inherit(
     "ProductModel",
     create_product_model,
     {
-        "id": fields.Integer(readOnly=True),
-        "wishlist_id": fields.Integer(required=True),
+        "id": fields.Integer(readOnly=True, example=10),
+        "wishlist_id": fields.Integer(required=True, example=5),
     },
 )
 
 product_patch_model = products_ns.model(
     "ProductPatch",
     {
-        "note": fields.String(required=False, description="Optional note about the product"),
-        "is_gift": fields.Boolean(required=False, description="Whether the product is a gift"),
-        "quantity": fields.Integer(required=False, description="Quantity of the product"),
-        "purchased": fields.Boolean(required=False, description="Whether the product has been purchased"),
+        "note": fields.String(required=False, description="Optional note about the product", example="Buy before holiday"),
+        "is_gift": fields.Boolean(required=False, description="Whether the product is a gift", example=False),
+        "quantity": fields.Integer(required=False, description="Quantity of the product", example=1),
+        "purchased": fields.Boolean(required=False, description="Whether the product has been purchased", example=True),
     }
 )
 
