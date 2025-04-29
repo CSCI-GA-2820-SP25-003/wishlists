@@ -6,7 +6,7 @@ spec:
   params:
   - name: git-repo-url
     description: The git repository url
-  - name: GIT_REF
+  - name: git-revision
     description: The git revision
   - name: git-repo-name
     description: The name of the deployment to be created / patched
@@ -26,7 +26,7 @@ spec:
       - name: GIT_REPO
         value: $(tt.params.git-repo-url)
       - name: IMAGE_NAME
-        value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(tt.params.git-repo-name):$(tt.params.GIT_REF)
+        value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(tt.params.git-repo-name):$(tt.params.git-revision)
       workspaces:
       - name: pipeline-workspace
         persistentVolumeClaim:
