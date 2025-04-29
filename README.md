@@ -51,6 +51,7 @@ wsgi.py                     - web server gateway interface entry point
 features/
 k8s/
 ├── postgres/
+├── deployment.yaml
 service/                    - service python package
 ├── __init__.py             - package initializer
 ├── config.py               - configuration parameters
