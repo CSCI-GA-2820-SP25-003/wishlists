@@ -126,7 +126,7 @@ spec:
       runAfter:
         - deploy-image
       params:
-        - name: BASE_URL
+        - name: base-url
           value: $(params.BASE_URL)
         - name: WAIT_SECONDS
           value: '60'
