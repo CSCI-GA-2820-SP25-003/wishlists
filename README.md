@@ -50,6 +50,7 @@ wsgi.py                     - web server gateway interface entry point
 .tekton/
 features/
 k8s/
+├── postgres/
 service/                    - service python package
 ├── __init__.py             - package initializer
 ├── config.py               - configuration parameters
