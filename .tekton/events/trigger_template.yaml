@@ -6,7 +6,7 @@ spec:
   params:
   - name: git-repo-url
     description: The git repository url
-  - name: git-revision
+  - name: GIT_REF
     description: The git revision
   - name: git-repo-name
     description: The name of the deployment to be created / patched
@@ -15,18 +15,18 @@ spec:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
-      generateName: cd-pipeline-$(params.git-repo-name)-
+      generateName: cd-pipeline-$(tt.params.git-repo-name)-
     spec:
       serviceAccountName: pipeline
       pipelineRef:
         name: cd-pipeline
       params:
       - name: APP_NAME
-        value: $(params.git-repo-name)
+        value: $(tt.params.git-repo-name)
       - name: GIT_REPO
-        value: $(params.git-repo-url)
+        value: $(tt.params.git-repo-url)
       - name: IMAGE_NAME
-        value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(params.git-repo-name):$(params.git-revision)
+        value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(tt.params.git-repo-name):$(tt.params.GIT_REF)
       workspaces:
       - name: pipeline-workspace
         persistentVolumeClaim:
