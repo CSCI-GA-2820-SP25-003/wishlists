@@ -15,16 +15,16 @@ spec:
   - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
-      generateName: cd-pipeline-$(tt.params.git-repo-name)-
+      generateName: cd-pipeline-$(params.git-repo-name)-
     spec:
       serviceAccountName: pipeline
       pipelineRef:
         name: cd-pipeline
       params:
       - name: APP_NAME
-        value: $(tt.params.git-repo-name)
+        value: $(params.git-repo-name)
       - name: GIT_REPO
-        value: $(tt.params.git-repo-url)
+        value: $(params.git-repo-url)
       - name: IMAGE_NAME
         value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(params.git-repo-name):$(params.git-revision)
       workspaces:
