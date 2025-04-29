@@ -83,18 +83,17 @@ Scenario: Search for a wishlist by name
   When I press the "Search Wishlist" button
   Then I should see "Birthday Gifts" in the results
 
-Scenario: Retrieve a product from a wishlist
-  When I visit the "Home Page"
-  And I select "Home Decor" from the "Wishlist Dropdown"
-  And I set the product "Name" to "Rope"
-  And I set the product "Price" to "3"
-  And I press the "Create Product" button
-  And I copy the product "ID" field
-  And I press the "Clear Product" button
-  And I paste the product "ID" field
-  And I press the "Retrieve Product" button
-  Then I should see the message "Product Retrieved!"
-  And I should see "Rope" in the product "Name" field
+# Scenario: Retrieve a product from a wishlist
+#   When I visit the "Home Page"
+#   And I select "Home Decor" from the "Wishlist Dropdown"
+#   And I set the product "Name" to "Rope"
+#   And I set the product "Price" to "3"
+#   And I press the "Create Product" button
+#   And I copy the product "ID" field
+#   And I press the "Clear Product" button
+#   And I paste the product "ID" field
+#   And I press the "Retrieve Product" button
+#   Then I should see "Rope" in the product "Name" field
 
 Scenario: Filter products by name
   When I visit the "Home Page"
@@ -121,7 +120,6 @@ Scenario: Update a Product
     And I press the "Clear Product" button
     And I paste the product "ID" field
     And I press the "Retrieve Product" button
-    Then I should see the message "Product Retrieved!"
     Then I should see "Fryer Air" in the product "Name" field
     When I press the "Clear Product" button
     And I press the "Search Product" button

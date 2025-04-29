@@ -316,7 +316,7 @@ $(function () {
 
     $("#filter_product-btn").click(function () {
       const wishlist_id = $("#select_wishlist_dropdown").val();
-      const product_name = $("#filter_product_name").val().toLowerCase();
+      const product_name = $("#product_filter_by_name").val().toLowerCase();
       const min_price = $("#product_min_price").val();
       const max_price = $("#product_max_price").val();
 
@@ -339,7 +339,7 @@ $(function () {
     });
 
     $("#clear-filter-btn").click(function () {
-      $("#filter_product_name").val("");
+      $("#product_filter_by_name").val("");
       $("#list_products-btn").click(); // re-list all products
     });
 
