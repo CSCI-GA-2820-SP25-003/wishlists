@@ -47,7 +47,8 @@ dot-env-example             - copy to .env to use environment variables
 requirements.txt            - required packages and libraries
 setup.cfg                   - configuration file
 wsgi.py                     - web server gateway interface entry point
-
+features/
+k8s/
 service/                    - service python package
 ├── __init__.py             - package initializer
 ├── config.py               - configuration parameters
