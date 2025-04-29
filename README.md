@@ -52,6 +52,7 @@ features/
 k8s/
 ├── postgres/
 ├── deployment.yaml
+├── ingress.yaml
 service/                    - service python package
 ├── __init__.py             - package initializer
 ├── config.py               - configuration parameters
