@@ -48,7 +48,7 @@ requirements.txt            - required packages and libraries
 setup.cfg                   - configuration file
 wsgi.py                     - web server gateway interface entry point
 .tekton/
-features/
+features/                   - tekton files for pipeline
 ├── steps/
     ├── product_steps.py
     ├── web_steps.py
