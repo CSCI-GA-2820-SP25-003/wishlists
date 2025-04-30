@@ -131,7 +131,7 @@ spec:
         - name: WAIT_SECONDS
           value: '60'
         - name: DRIVER
-          value: firefox
+          value: chrome
       workspaces:
         - name: source
           workspace: pipeline-workspace

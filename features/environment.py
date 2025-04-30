@@ -6,8 +6,8 @@ from os import getenv
 from selenium import webdriver
 
 WAIT_SECONDS = int(getenv("WAIT_SECONDS", "30"))
-BASE_URL = "http://wishlists-anushka1307-dev.apps.rm1.0a51.p1.openshiftapps.com/"
-DRIVER = "chrome"
+BASE_URL = BASE_URL = getenv("BASE_URL", "http://localhost:8080")
+DRIVER = getenv("DRIVER", "chrome").lower()
 
 
 def before_all(context):
@@ -20,7 +20,7 @@ def before_all(context):
     else:
         context.driver = get_chrome()
     context.driver.implicitly_wait(context.wait_seconds)
-    context.driver.set_window_size(3280, 4300)
+    context.driver.set_window_size(1280, 1300)
     context.config.setup_logging()
 
 
