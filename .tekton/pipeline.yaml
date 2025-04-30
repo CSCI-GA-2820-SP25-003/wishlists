@@ -128,10 +128,11 @@ spec:
       params:
         - name: base-url
           value: $(params.BASE_URL)
-        - name: WAIT_SECONDS
-          value: '60'
-        - name: DRIVER
-          value: chrome
+        - name: wait-seconds
+          value: "60"
+        - name: driver
+          value: "chrome"
       workspaces:
         - name: source
           workspace: pipeline-workspace
+
