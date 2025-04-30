@@ -295,5 +295,4 @@ spec:
         python -m pip install --user -r requirements.txt
 
         echo "***** Running Tests *****"
-        echo "DEBUGG: BASE_URL is $BASE_URL"
         behave
