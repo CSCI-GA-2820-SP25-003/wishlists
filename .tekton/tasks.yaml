@@ -297,6 +297,7 @@ spec:
         echo "***** Running Tests *****"
         behave
 
+---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
