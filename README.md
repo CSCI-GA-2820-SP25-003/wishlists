@@ -49,6 +49,7 @@ setup.cfg                   - configuration file
 wsgi.py                     - web server gateway interface entry point
 .tekton/
 features/
+├── steps/
 k8s/
 ├── postgres/
     ├── postgres-deployment.yaml
