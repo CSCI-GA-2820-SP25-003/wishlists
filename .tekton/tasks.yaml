@@ -296,3 +296,80 @@ spec:
 
         echo "***** Running Tests *****"
         behave
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: behave
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/categories: Testing
+    tekton.dev/pipelines.minVersion: "0.17.0"
+    tekton.dev/tags: python, bdd, behave
+    tekton.dev/displayName: "BDD: Behave Tests"
+    tekton.dev/platforms: "linux/amd64"
+spec:
+  workspaces:
+    - name: source
+      description: The workspace containing your application code and BDD suite.
+  params:
+    - name: base-url
+      description: The URL of the running app to test against.
+      type: string
+    - name: wait-seconds
+      description: Seconds to wait for the app to become healthy.
+      type: string
+      default: "60"
+    - name: driver
+      description: Selenium driver to use ("chrome" or "firefox").
+      type: string
+      default: "chrome"
+  steps:
+    - name: wait-for-app
+      image: busybox
+      script: |
+        #!/bin/sh
+        i=0
+        until [ $i -ge $(params.wait-seconds) ]
+        do
+          if wget --spider -q "$(params.base-url)"; then
+            echo "App is up!"
+            exit 0
+          fi
+          i=$((i+1))
+          sleep 1
+        done
+        echo "Timed out waiting for app at $(params.base-url)" >&2
+        exit 1
+
+    - name: install-deps
+      image: quay.io/rofrano/pipeline-selenium
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/bash
+        set -e
+        export PATH=$PATH:$HOME/.local/bin
+
+        echo "Installing test dependencies..."
+        if [ -f requirements.txt ]; then
+          python -m pip install --user -r requirements.txt
+        fi
+        python -m pip install --user behave selenium
+
+    - name: run-behave
+      image: quay.io/rofrano/pipeline-selenium
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: BASE_URL
+          value: $(params.base-url)
+        - name: WAIT_SECONDS
+          value: $(params.wait-seconds)
+        - name: DRIVER
+          value: $(params.driver)
+      script: |
+        #!/bin/bash
+        set -e
+        echo "Running BDD suite with Behave..."
+        behave features/
