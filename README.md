@@ -52,6 +52,7 @@ features/
 ├── steps/
     ├── web_steps.py
     ├── wishlist_steps.py
+    ├── product_steps.py
 ├── wishlists.feature
 k8s/
 ├── postgres/
