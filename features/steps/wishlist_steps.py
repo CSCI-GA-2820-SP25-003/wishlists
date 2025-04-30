@@ -40,7 +40,7 @@ def step_impl(context):
     """Delete all Wishlists and load new ones"""
 
     # Get a list all of the wishlists
-    rest_endpoint = f"{context.base_url}/wishlists"
+    rest_endpoint = f"{context.base_url}/api/wishlists"
     context.resp = requests.get(rest_endpoint, timeout=WAIT_TIMEOUT)
     expect(context.resp.status_code).equal_to(HTTP_200_OK)
     # and delete them one by one
