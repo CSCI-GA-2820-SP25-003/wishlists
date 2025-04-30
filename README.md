@@ -53,6 +53,7 @@ k8s/
 ├── postgres/
     ├── postgres-deployment.yaml
     ├── postgres-service.yaml
+    ├── secret.yaml
 ├── deployment.yaml
 ├── ingress.yaml
 ├── service.yaml
