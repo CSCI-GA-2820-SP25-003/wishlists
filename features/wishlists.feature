@@ -79,17 +79,26 @@ Scenario: Search for a wishlist by name
   When I press the "Search Wishlist" button
   Then I should see "Office Stuff" in the results
 
-# Scenario: Retrieve a product from a wishlist
-#   When I visit the "Home Page"
-#   And I select "Home Decor" from the "Wishlist Dropdown"
-#   And I set the product "Name" to "Rope"
-#   And I set the product "Price" to "3"
-#   And I press the "Create Product" button
-#   And I copy the product "ID" field
-#   And I press the "Clear Product" button
-#   And I paste the product "ID" field
-#   And I press the "Retrieve Product" button
-#   Then I should see "Rope" in the product "Name" field
+Scenario: Create a product
+  When I visit the "Home Page"
+  And I select "Home Decor" from the "Wishlist Dropdown"
+  And I set the product "Name" to "Stool"
+  And I set the product "Price" to "13"
+  And I press the "Create Product" button
+  Then I should see the message "Product Added to Wishlist!"
+  And I should see the product "Stool" in the results
+
+Scenario: Retrieve a product from a wishlist
+  When I visit the "Home Page"
+  And I select "Home Decor" from the "Wishlist Dropdown"
+  And I set the product "Name" to "Rope"
+  And I set the product "Price" to "3"
+  And I press the "Create Product" button
+  And I copy the product "ID" field
+  And I press the "Clear Product" button
+  And I paste the product "ID" field
+  And I press the "Retrieve Product" button
+  Then I should see "Rope" in the product "Name" field
 
 Scenario: Filter products by name
   When I visit the "Home Page"

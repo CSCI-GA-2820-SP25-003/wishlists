@@ -260,13 +260,13 @@ $(function () {
 
       const data = {
         wishlist_id: parseInt(wishlist_id),  
-        name: $("#name").val(),
-        price: parseFloat($("#price").val()),
-        quantity: parseInt($("#quantity").val()),
-        description: $("#description").val(),
-        note: $("#note").val(),
-        is_gift: $("#is_gift").is(":checked"),
-        purchased: $("#purchased").is(":checked")
+        name: $("#product_name").val(),
+        price: parseFloat($("#product_price").val()),
+        quantity: parseInt($("#product_quantity").val()),
+        description: $("#product_description").val(),
+        note: $("#product_note").val(),
+        is_gift: $("#product_is_gift").is(":checked"),
+        purchased: $("#product_purchased").is(":checked")
       };
       
 
