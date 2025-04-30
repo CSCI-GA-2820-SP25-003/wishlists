@@ -52,6 +52,7 @@ features/
 k8s/
 ├── postgres/
     ├── postgres-deployment.yaml
+    ├── postgres-service.yaml
 ├── deployment.yaml
 ├── ingress.yaml
 ├── service.yaml
