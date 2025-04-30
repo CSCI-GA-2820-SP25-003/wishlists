@@ -19,7 +19,7 @@ spec:
     - name: BASE_URL
       description: Public URL for BDD testing
       type: string
-      default: 'https://wishlists-anushka1307-dev.apps.<your-cluster-domain>/'
+      default: 'https://wishlists-anushka1307-dev.apps.rm1.0a51.p1.openshiftapps.com'
 
   workspaces:
     - name: pipeline-workspace
@@ -126,7 +126,7 @@ spec:
       runAfter:
         - deploy-image
       params:
-        - name: BASE_URL
+        - name: base-url
           value: $(params.BASE_URL)
         - name: WAIT_SECONDS
           value: '60'

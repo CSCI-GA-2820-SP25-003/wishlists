@@ -20,7 +20,10 @@ def before_all(context):
     else:
         context.driver = get_chrome()
     context.driver.implicitly_wait(context.wait_seconds)
-    context.driver.set_window_size(1280, 1300)
+    context.driver.set_window_size(2280, 1300)
+    context.driver.get(context.base_url)
+    context.driver.save_screenshot("/tmp/incognito_test.png")
+    print("📸 Saved screenshot to /tmp/incognito_test.png")
     context.config.setup_logging()
 
 

@@ -31,7 +31,7 @@ from service.common import status
 from service.models import db, Wishlist, DataValidationError
 from .factories import WishlistFactory, ProductFactory
 
-BASE_URL = "/wishlists"
+BASE_URL = "api/wishlists"
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"

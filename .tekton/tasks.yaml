@@ -125,9 +125,9 @@ spec:
           poetry config virtualenvs.create false
           poetry install
         elif [ -e "Pipfile" ]; then
-          echo "Found Pipfile file: using pipenv ..."
-          python -m pip install --upgrade pip pipenv
-          pipenv install --system --dev
+        echo "Found Pipfile file: using pipenv ..."
+        python -m pip install --upgrade pip pipenv
+        pipenv --clear install --system --deploy --dev
         elif -e "requirements.txt" ]; then
           python -m pip install --user -r requirements.txt
         fi

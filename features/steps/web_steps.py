@@ -66,29 +66,34 @@ def step_impl(context: Any) -> None:
 
 
 @then('I should see "{message}" in the title')
-def step_impl(context: Any, message: str) -> None:
-    """Check the document title for a message"""
+def step_impl(context, message):
+    WebDriverWait(context.driver, context.wait_seconds).until(
+        lambda driver: message in driver.title
+    )
     assert message in context.driver.title
 
-
 @then('I should not see "{text_string}"')
-def step_impl(context: Any, text_string: str) -> None:
-    element = context.driver.find_element(By.TAG_NAME, "body")
+def step_impl(context, text_string):
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.TAG_NAME, "body"))
+    )
     assert text_string not in element.text
 
-
 @when('I set the "{element_name}" to "{text_string}"')
-def step_impl(context: Any, element_name: str, text_string: str) -> None:
+def step_impl(context, element_name, text_string):
     element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
-    element = context.driver.find_element(By.ID, element_id)
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
     element.clear()
     element.send_keys(text_string)
 
-
 @then('the "{element_name}" field should be empty')
-def step_impl(context: Any, element_name: str) -> None:
+def step_impl(context, element_name):
     element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
-    element = context.driver.find_element(By.ID, element_id)
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
     assert element.get_attribute("value") == ""
 
 
@@ -125,16 +130,22 @@ def step_impl(context: Any, element_name: str) -> None:
 
 
 @when('I press the "{button}" button')
-def step_impl(context: Any, button: str) -> None:
+def step_impl(context, button):
     button_id = button.lower().replace(" ", "_") + "-btn"
-    context.driver.find_element(By.ID, button_id).click()
+    button_element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.element_to_be_clickable((By.ID, button_id))
+    )
+    button_element.click()
 
 
 @when('I select "{value}" from the "Wishlist Dropdown"')
-def step_impl(context: Any, value: str) -> None:
+def step_impl(context, value):
     if value == "{clipboard}" or value == "clipboard":
         value = context.clipboard
-    select = Select(context.driver.find_element(By.ID, "select_wishlist_dropdown"))
+    select_element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, "select_wishlist_dropdown"))
+    )
+    select = Select(select_element)
     select.select_by_visible_text(value)
 
 
@@ -208,17 +219,21 @@ PRODUCT_ID_PREFIX = "product_"
 
 
 @when('I set the product "{element_name}" to "{text_string}"')
-def step_impl(context: Any, element_name: str, text_string: str) -> None:
+def step_impl(context, element_name, text_string):
     element_id = PRODUCT_ID_PREFIX + element_name.lower().replace(" ", "_")
-    element = context.driver.find_element(By.ID, element_id)
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
     element.clear()
     element.send_keys(text_string)
 
 
-@when('I check the "{checkbox}" product checkbox')  # Line ≈ 247
+@when('I check the "{checkbox}" product checkbox')
 def step_impl(context, checkbox):
     checkbox_id = PRODUCT_ID_PREFIX + checkbox.lower().replace(" ", "_")
-    checkbox_element = context.driver.find_element(By.ID, checkbox_id)
+    checkbox_element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, checkbox_id))
+    )
     if not checkbox_element.is_selected():
         checkbox_element.click()
 
@@ -232,12 +247,6 @@ def step_impl(context: Any, name: str) -> None:
         )
     )
     assert found
-
-
-@then('I should not see the product "{name}" in the results')
-def step_impl(context: Any, name: str) -> None:
-    element = context.driver.find_element(By.ID, "product-results-body")
-    assert name not in element.text
 
 
 @then('I should see "{text_string}" in the product "{element_name}" field')
@@ -279,3 +288,18 @@ def step_impl(context: Any, element_name: str, text_string: str) -> None:
     )
     element.clear()
     element.send_keys(text_string)
+
+
+@then('I should not see the product "{name}" in the results')
+def step_impl(context, name):
+    """Ensure the product with the given name is NOT present in the results table"""
+    try:
+        WebDriverWait(context.driver, context.wait_seconds).until(
+            expected_conditions.presence_of_element_located((By.ID, "product-results-body"))
+        )
+        body = context.driver.find_element(By.ID, "product-results-body")
+        assert name not in body.text, f'Unexpectedly found product "{name}" in the results'
+    except Exception as e:
+        # Optional: Add logging or print for debugging
+        print("Error during product absence check:", e)
+        raise

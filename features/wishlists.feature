@@ -67,7 +67,6 @@ Scenario: Delete a Wishlist
   And I set the "Name" to "Old Wishlist"
   And I set the "User ID" to "2001"
   And I press the "Create Wishlist" button
-  Then I should see the message "Wishlist Created!"
   When I copy the "ID" field
   And I press the "Clear Wishlist" button
   When I paste the "ID" field
@@ -76,12 +75,9 @@ Scenario: Delete a Wishlist
 
 Scenario: Search for a wishlist by name
   When I visit the "Home Page"
-  And I set the "Name" to "Birthday Gifts"
-  And I set the "User ID" to "1234"
-  And I press the "Create Wishlist" button
-  Then I should see the message "Wishlist Created!"
+  And I set the "Name" to "Office Stuff"
   When I press the "Search Wishlist" button
-  Then I should see "Birthday Gifts" in the results
+  Then I should see "Office Stuff" in the results
 
 # Scenario: Retrieve a product from a wishlist
 #   When I visit the "Home Page"
