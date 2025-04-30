@@ -51,6 +51,7 @@ wsgi.py                     - web server gateway interface entry point
 features/
 ├── steps/
     ├── web_steps.py
+    ├── wishlist_steps.py
 ├── wishlists.feature
 k8s/
 ├── postgres/
