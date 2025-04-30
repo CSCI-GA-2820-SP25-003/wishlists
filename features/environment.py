@@ -6,7 +6,7 @@ from os import getenv
 from selenium import webdriver
 
 WAIT_SECONDS = int(getenv("WAIT_SECONDS", "30"))
-BASE_URL = BASE_URL = getenv("BASE_URL", "http://localhost:8080")
+BASE_URL = getenv("BASE_URL", "http://localhost:8080")
 DRIVER = getenv("DRIVER", "chrome").lower()
 
 
@@ -20,7 +20,10 @@ def before_all(context):
     else:
         context.driver = get_chrome()
     context.driver.implicitly_wait(context.wait_seconds)
-    context.driver.set_window_size(1280, 1300)
+    context.driver.set_window_size(2280, 1300)
+    context.driver.get(context.base_url)
+    context.driver.save_screenshot("/tmp/incognito_test.png")
+    print("📸 Saved screenshot to /tmp/incognito_test.png")
     context.config.setup_logging()
 
 
