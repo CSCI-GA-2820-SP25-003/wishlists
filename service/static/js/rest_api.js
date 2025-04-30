@@ -25,12 +25,12 @@ $(function () {
     function renderProductResults(products) {
       const body = $("#product-results-body");
       body.empty();
-      
+
       if (products.length === 0) {
         body.append(`<tr><td colspan="9">No products available.</td></tr>`);
         return;
       }
-      
+
       products.forEach(p => {
         body.append(`<tr><td>${p.id}</td><td>${p.wishlist_id}</td><td>${p.name}</td><td>${p.price}</td><td>${p.quantity}</td><td>${p.is_gift}</td><td>${p.purchased}</td><td>${p.description}</td><td>${p.note}</td></tr>`);
       });
@@ -50,8 +50,8 @@ $(function () {
       $("#product_note").val("");
       $("#product_min_price").val("");
       $("#product_max_price").val("");
-      $("#is_gift").prop("checked", false);        
-      $("#purchased").prop("checked", false);      
+      $("#is_gift").prop("checked", false);
+      $("#purchased").prop("checked", false);
     }
 
     function update_wishlist_form(res) {
@@ -67,8 +67,8 @@ $(function () {
       $("#product_description").val(res.description);
       $("#product_quantity").val(res.quantity);
       $("#product_note").val(res.note);
-      $("#is_gift").prop("checked", res.is_gift);         
-      $("#purchased").prop("checked", res.purchased);    
+      $("#is_gift").prop("checked", res.is_gift);
+      $("#purchased").prop("checked", res.purchased);
     }
 
 
@@ -141,16 +141,16 @@ $(function () {
         $.get("/api/wishlists")
         .done(wishlists => {
             populateWishlistDropdown(wishlists);
-            
+
             // If we have wishlists, get products from all wishlists
             if (wishlists && wishlists.length > 0) {
                 let allProducts = [];
                 let fetchedCount = 0;
-                
+
                 // Select the first wishlist in the dropdown
                 const firstWishlistId = wishlists[0].id;
                 $("#select_wishlist_dropdown").val(firstWishlistId);
-                
+
                 // Iterate through each wishlist and get all products
                 wishlists.forEach(wishlist => {
                     $.get(`/api/wishlists/${wishlist.id}/products`)
@@ -158,7 +158,7 @@ $(function () {
                         // Add products to our collection
                         allProducts = allProducts.concat(products);
                         fetchedCount++;
-                        
+
                         // When we've fetched from all wishlists, render the results
                         if (fetchedCount === wishlists.length) {
                             flash_message("All products loaded successfully");
@@ -168,7 +168,7 @@ $(function () {
                     .fail(res => {
                         fetchedCount++;
                         console.log(`Error loading products from wishlist ${wishlist.id}`);
-                        
+
                         // Even if some fail, render what we have when all requests complete
                         if (fetchedCount === wishlists.length) {
                             renderProductResults(allProducts);
@@ -214,7 +214,7 @@ $(function () {
         type: "DELETE",
         success: () => {
           flash_message("Wishlist Deleted!");
-          clear_form("#wishlist_form");
+          clear_wishlist_form();
         },
         error: res => flash_message(res.responseJSON ? res.responseJSON.message : "Error deleting wishlist")
       });
@@ -230,7 +230,9 @@ $(function () {
         type: "DELETE",
         success: () => {
           flash_message("Product Deleted!");
-          clear_form("#product_form");
+          clear_product_form();
+            $.get(`/api/wishlists/${wishlist_id}/products`)
+            .done(renderProductResults);
         },
         error: res => flash_message(res.responseJSON ? res.responseJSON.message : "Error deleting product")
       });
@@ -252,14 +254,14 @@ $(function () {
     // ****************************************
     // CRUD for Products
     // ****************************************
-    
+
     // Adding Product to Wishlist
     $("#create_product-btn").click(function () {
       const wishlist_id = $("#select_wishlist_dropdown").val();
       if (!wishlist_id) return flash_message("Select a wishlist first");
 
       const data = {
-        wishlist_id: parseInt(wishlist_id),  
+        wishlist_id: parseInt(wishlist_id),
         name: $("#name").val(),
         price: parseFloat($("#price").val()),
         quantity: parseInt($("#quantity").val()),
@@ -268,7 +270,7 @@ $(function () {
         is_gift: $("#is_gift").is(":checked"),
         purchased: $("#purchased").is(":checked")
       };
-      
+
 
       $.ajax({
         url: `/api/wishlists/${wishlist_id}/products`,
@@ -324,13 +326,13 @@ $(function () {
       if (!wishlist_id) {
         return flash_message("Select a wishlist first");
       }
-    
+
       // Build query parameters
       let params = {};
       if (product_name) params.product_name = product_name;
       if (min_price) params.min_price = min_price;
       if (max_price) params.max_price = max_price;
-    
+
       $.get(`/api/wishlists/${wishlist_id}/products`, params)
         .done(renderProductResults)
         .fail(res =>
@@ -348,14 +350,14 @@ $(function () {
       let wishlist_id = $("#select_wishlist_dropdown").val();
       let name = $("#product_name").val();
       let price = parseFloat($("#product_price").val());
-      let quantity = parseInt($("#product_quantity").val());      
+      let quantity = parseInt($("#product_quantity").val());
       let description = $("#product_description").val();
       let note = $("#product_note").val();
-      
+
       // Use the correct IDs that match your HTML
       let is_gift = $("#is_gift").is(":checked");
       let purchased = $("#purchased").is(":checked");
-  
+
       let data = {
           "name": name,
           "wishlist_id": wishlist_id,
@@ -366,11 +368,11 @@ $(function () {
           "is_gift": is_gift,
           "purchased": purchased
       };
-  
+
       $("#flash_message").empty();
-  
+
       let path = `/api/wishlists/${wishlist_id}/products/${product_id}`;
-  
+
       let ajax = $.ajax({
           type: "PUT",
           url: path,

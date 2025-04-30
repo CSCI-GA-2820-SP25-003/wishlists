@@ -122,3 +122,16 @@ Scenario: Update a Product
     Then I should see the message "All products loaded successfully"
     And I should see the product "Fryer Air" in the results
     And I should not see the product "Air Fryer" in the results
+
+Scenario: Delete a Product
+  When I visit the "Home Page"
+  And I select "Tech Gifts" from the "Wishlist Dropdown"
+  And I press the "List Products" button
+  And I set the product "Name" to "Air Fryer"
+  And I press the "Search Product" button
+  Then I should see the message "All products loaded successfully"
+  And I should see the product "Air Fryer" in the results
+  When I copy the product "ID" field
+  And I press the "Delete-Product" button
+  Then I should see the message "Product Deleted!"
+  And I should not see the product "Air Fryer" in the results
