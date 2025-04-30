@@ -47,8 +47,8 @@ dot-env-example             - copy to .env to use environment variables
 requirements.txt            - required packages and libraries
 setup.cfg                   - configuration file
 wsgi.py                     - web server gateway interface entry point
-.tekton/
-features/                   - tekton files for pipeline
+.tekton/                    - tekton files for pipeline
+features/                   
 ├── steps/
     ├── product_steps.py
     ├── web_steps.py
