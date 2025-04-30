@@ -265,7 +265,7 @@ spec:
     - name: driver
       description: The web driver to use (chrome or firefox)
       type: string
-      default: "chrome"
+      default: "firefox"
   steps:
     - name: behave
       image: quay.io/rofrano/pipeline-selenium
