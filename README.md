@@ -50,9 +50,9 @@ wsgi.py                     - web server gateway interface entry point
 .tekton/
 features/
 ├── steps/
+    ├── product_steps.py
     ├── web_steps.py
     ├── wishlist_steps.py
-    ├── product_steps.py
 ├── wishlists.feature
 k8s/
 ├── postgres/
